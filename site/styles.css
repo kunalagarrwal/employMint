@@ -164,6 +164,8 @@ code { font-family: var(--mono); font-size: .9em; }
    top) to the outline of spreading ink. */
 .ink-out::view-transition-old(root) { z-index: 9999; }
 .ink-out::view-transition-new(root) { z-index: 1; }
+/* While the page is captured for the switch, nothing fades its colours: the new snapshot is already final. */
+.switching .pill, .switching .btn, .switching .theme-toggle, .switching a, .switching [data-sheet-no], .switching [data-sheet-name] { transition: none !important; }
 .theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
   transition: background-color .5s ease, color .5s ease, border-color .5s ease, fill .5s ease, stroke .5s ease, opacity .5s ease !important;
 }

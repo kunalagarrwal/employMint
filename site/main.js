@@ -78,7 +78,7 @@
   // shape, so the edge stays crisp at any size. The outline is a circle bent by a few slow, low lobes that drift as it
   // grows, so it moves like liquid rather than a perfect circle, and its centre flows a little across the page.
   const inkFrames = (x, y) => {
-    const W = innerWidth, H = innerHeight, N = 120, F = 36;
+    const W = innerWidth, H = innerHeight, N = 72, F = 30;
     const lobes = [2, 3, 4, 5, 7, 11].map((k) => ({
       k, a: (k < 6 ? 0.032 : 0.007) / Math.sqrt(k / 2), ph: Math.random() * 6.283, sp: (Math.random() - 0.5) * 1.6,
     }));
@@ -102,8 +102,33 @@
     }
     return frames;
   };
+  // Each drawing has a light and a dark file, and the browser only fetches the one on show. Fetch the other theme's
+  // files ahead of time (once the page is idle, and at the latest when the pointer reaches the switch), so a switch
+  // never captures a page with a missing picture that pops in halfway through the ink.
+  let warmed = false;
+  const warm = () => {
+    if (warmed) return; warmed = true;
+    document.querySelectorAll("img.ink-l, img.ink-d").forEach((im) => { im.loading = "eager"; });
+  };
+  // The other theme's pictures on (or next to) the screen, decoded, with a short cap so a slow network never blocks.
+  const readyFor = (dark) => {
+    warm();
+    const near = [...document.querySelectorAll(dark ? "img.ink-d" : "img.ink-l")].filter((im) => {
+      const r = im.parentElement.getBoundingClientRect();
+      return r.bottom > -innerHeight && r.top < innerHeight * 2;
+    });
+    const decoded = Promise.all(near.map((im) => im.decode().catch(() => {})));
+    return Promise.race([decoded, new Promise((ok) => setTimeout(ok, 350))]);
+  };
+  let busy = false;
   if (toggle) {
-    toggle.addEventListener("click", () => {
+    if (!reduce) {
+      addEventListener("load", () => (window.requestIdleCallback || ((f) => setTimeout(f, 1500)))(warm), { once: true });
+      toggle.addEventListener("pointerenter", warm, { once: true });
+      toggle.addEventListener("focus", warm, { once: true });
+    }
+    toggle.addEventListener("click", async () => {
+      if (busy) return; // a second click mid-ink would cut the first transition off
       const next = isDark() ? "light" : "dark";
       const apply = () => {
         root.dataset.theme = next;
@@ -114,10 +139,12 @@
       if (document.startViewTransition) {
         // Going dark, ink spreads from the switch until the whole sheet is dark. Going light, the same ink draws
         // back into the switch: the old (dark) page sits on top and its outline shrinks away.
+        busy = true;
+        await readyFor(next === "dark");
         const b = toggle.getBoundingClientRect();
         const frames = inkFrames(b.left + b.width / 2, b.top + b.height / 2);
         const soak = next === "dark";
-        root.classList.add(soak ? "ink-in" : "ink-out");
+        root.classList.add("switching", soak ? "ink-in" : "ink-out");
         const vt = document.startViewTransition(apply);
         vt.ready.then(() => {
           root.animate(soak ? frames : frames.reverse().map((k, i, a) => ({ ...k, offset: i / (a.length - 1) })), {
@@ -125,7 +152,7 @@
             pseudoElement: soak ? "::view-transition-new(root)" : "::view-transition-old(root)",
           });
         }).catch(() => {});
-        vt.finished.finally(() => root.classList.remove("ink-in", "ink-out"));
+        vt.finished.finally(() => { root.classList.remove("switching", "ink-in", "ink-out"); busy = false; });
       } else {
         // No View Transitions: colours fade across instead of snapping.
         root.classList.add("theme-fade");
