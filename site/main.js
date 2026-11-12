@@ -1,11 +1,8 @@
-// employMint specimen file: plates that snap one per scroll (native scroll snapping), images that come out of a washed, grainy haze as
-// they settle, a title block that follows the sheet you're on, and the copy button. Every effect is a pure
-// function of scroll position (or, for the first plate, of time since load).
+// employMint specimen file: plates that snap one per scroll (native scroll snapping), images that develop out of a
+// grainy haze when their plate arrives, a title block that follows the sheet you're on, the theme switch and the copy
+// button. Scrolling itself runs no JavaScript work: observers flip classes, CSS transitions do the motion.
 (() => {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
-  const smooth = (t) => t * t * (3 - 2 * t);
-  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
   // ---------- in-page links: the browser's scroll snapping takes it from here ----------
   document.querySelectorAll('a[href^="#"]').forEach((a) => {
@@ -31,77 +28,40 @@
   const hero = document.querySelector(".plate-hero");
   const sheetNo = document.querySelector("[data-sheet-no]");
   const sheetName = document.querySelector("[data-sheet-name]");
-  const reveals = [...document.querySelectorAll(".reveal")].map((el) => {
-    const siblings = [...el.parentElement.children].filter((c) => c.classList.contains("reveal"));
-    return { el, lag: Math.min(siblings.indexOf(el), 3) * 0.08 };
-  });
 
-  // Resting positions are measured once (and again when layout changes), never per frame.
-  const docTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return y; };
-  let geo = null;
-  const measure = () => {
-    geo = { plates: plates.map((pl) => docTop(pl)), reveals: reveals.map((r) => docTop(r.el)) };
-  };
-
-  // The first plate is already on screen: it develops out of the wash over 2.6s after load.
-  if (!reduce && hero) {
-    const start = performance.now() + 200;
-    const tick = (now) => {
-      const p = clamp((now - start) / 2600); // a slower develop, like a print coming up in the tray
-      hero.style.setProperty("--clear", smooth(p).toFixed(3));
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    hero.style.setProperty("--clear", "0");
-    setTimeout(() => flash(hero), 180);
-    requestAnimationFrame(tick);
+  // Nothing here runs per scroll frame. Two observers fire only when a plate crosses a line:
+  // - a plate "develops" (.on) when a good part of it is on screen, and fades back when it leaves, so it develops
+  //   again next time; CSS does the rest with opacity and transform transitions.
+  // - the title block follows the plate under the middle of the screen, and that plate gets its camera flash.
+  if (reduce || !("IntersectionObserver" in window)) {
+    plates.forEach((p) => p.classList.add("on"));
+  } else {
+    const develop = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.target !== hero || e.isIntersecting) e.target.classList.toggle("on", e.isIntersecting); });
+    }, { threshold: 0.3 });
+    plates.forEach((p) => { if (p !== hero) develop.observe(p); });
+    // The first plate is already on screen: it develops over a few seconds after load, with a flash.
+    if (hero) requestAnimationFrame(() => requestAnimationFrame(() => { hero.classList.add("on"); flash(hero); }));
   }
-
-  let current = "";
-  const frame = () => {
-    queued = false;
-    const h = window.innerHeight;
-    const y = window.scrollY;
-    nav.classList.toggle("scrolled", y > 8);
-    if (!geo) measure();
-
-    // Title block: the sheet whose top has passed the middle of the screen.
-    let idx = 0;
-    geo.plates.forEach((top, i) => { if (top - y < h * 0.45) idx = i; });
-    const pl = plates[idx];
-    const key = pl.dataset.plate + pl.dataset.name;
-    if (key !== current && sheetNo) {
-      if (current) flash(pl); // each plate is photographed as it arrives
-      current = key;
-      sheetNo.textContent = pl.dataset.plate;
-      sheetName.textContent = pl.dataset.name;
-    }
-    if (reduce) return;
-
-    // Each plate's image is washed out and grainy while it travels in, and clear once it has snapped into place.
-    plates.forEach((p, i) => {
-      if (p === hero) return;
-      const top = geo.plates[i] - y;
-      p.style.setProperty("--clear", smooth(clamp(1 - top / (h * 0.75))).toFixed(3));
-    });
-
-    // Text rises into place over the lower ~40% of the screen.
-    reveals.forEach((r, i) => {
-      const top = geo.reveals[i] - y;
-      let p = easeOut(clamp((h - top) / (h * 0.42) - r.lag));
-      if (r.el.contains(document.activeElement)) p = 1;
-      r.el.style.opacity = p.toFixed(3);
-      r.el.style.transform = `translate3d(0, ${((1 - p) * 40).toFixed(1)}px, 0)`;
-    });
-  };
-  let queued = false;
-  const request = () => { if (!queued) { queued = true; requestAnimationFrame(frame); } };
-  const remeasure = () => { geo = null; request(); };
-  window.addEventListener("scroll", request, { passive: true });
-  window.addEventListener("resize", remeasure);
-  document.addEventListener("focusin", request);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
-  if ("ResizeObserver" in window) new ResizeObserver(remeasure).observe(document.body);
-  frame();
+  let current = null;
+  if ("IntersectionObserver" in window && sheetNo) {
+    // rootMargin shrinks the viewport to a thin line 45% down the screen: whichever plate crosses it is current.
+    const follow = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting || e.target === current) return;
+        if (current) flash(e.target); // each plate is photographed as it arrives
+        current = e.target;
+        sheetNo.textContent = e.target.dataset.plate;
+        sheetName.textContent = e.target.dataset.name;
+      });
+    }, { rootMargin: "-45% 0px -54% 0px" });
+    plates.forEach((p) => follow.observe(p));
+  }
+  // The nav gets its hairline once the page has moved; a cheap check that only writes when it changes.
+  let scrolled = null;
+  const onScroll = () => { const s = window.scrollY > 8; if (s !== scrolled) { scrolled = s; nav.classList.toggle("scrolled", s); } };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
 
   // ---------- light / dark toggle ----------
   // The page follows the system until you choose; your choice is remembered on this device.
@@ -142,11 +102,6 @@
   }
   systemDark.addEventListener("change", syncToggle);
   syncToggle();
-
-  // Film grain is an endless animation: stop it while the tab is hidden.
-  document.addEventListener("visibilitychange", () => {
-    document.documentElement.classList.toggle("hidden-tab", document.visibilityState === "hidden");
-  });
 
   // ---------- copy the clone command ----------
   const status = document.querySelector(".copy-status");

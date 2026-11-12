@@ -110,8 +110,8 @@
         </div>
 
         <figure class="photo photo-hero">
-          <img src="img/plate-1.webp" width="1087" height="1447" fetchpriority="high"
-               alt="Plate I, specimen: a pencil drawing of a plant climbing a pole from a pot. Labels read: pole, your profile; leaf, a tailored resume; pot, your laptop.">
+          <img class="ink-l" src="img/plate-1-light.webp" width="1087" height="1447" fetchpriority="high" alt="Plate I, specimen: a pencil drawing of a plant climbing a pole from a pot. Labels read: pole, your profile; leaf, a tailored resume; pot, your laptop.">
+          <img class="ink-d" src="img/plate-1-dark.webp" width="1087" height="1447" loading="lazy" alt="Plate I, specimen: a pencil drawing of a plant climbing a pole from a pot. Labels read: pole, your profile; leaf, a tailored resume; pot, your laptop.">
           <span class="wash" aria-hidden="true"></span><span class="fgrain" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span>
         </figure>
         <p class="confidential" aria-hidden="true"><span>Confidential</span><small>Specimen EM-01 · Do not distribute</small></p>
@@ -150,7 +150,7 @@
           </dl>
         </div>
         <figure class="photo photo-print">
-          <span class="print"><img src="img/plate-3.webp" width="1474" height="1067" loading="lazy" alt="Figure EM-03, leaf detail: a real leaf on black, its lines labelled bullet, one line on the resume; vein, cites one fact; fact, from your profile; and one line marked no vein, rejected, never printed."><span class="fgrain" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span></span>
+          <span class="print"><img src="img/plate-3.webp" width="1474" height="1067" loading="lazy" decoding="async" alt="Figure EM-03, leaf detail: a real leaf on black, its lines labelled bullet, one line on the resume; vein, cites one fact; fact, from your profile; and one line marked no vein, rejected, never printed."><span class="fgrain" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span></span>
           <figcaption class="caption">Fig. EM-03 · Leaf detail · scale 6 : 1</figcaption>
         </figure>
       </div>
@@ -160,7 +160,8 @@
     <section class="plate" id="growth" data-plate="04" data-name="Growth pattern" aria-labelledby="growth-title">
       <div class="wrap plate-grid plate-grid-flip">
         <figure class="drawing drawing-tall photo photo-paper">
-          <img src="img/plate-4.webp" width="1136" height="1385" loading="lazy" alt="Figure EM-04, growth pattern: a pencil drawing of a vine climbing a pole through four steps, bottom to top: listings, 5,000+ postings filtered; tailor, resume and cover letter; review, you approve or skip; submit, reserved: by you. The whole climb takes one day.">
+          <img class="ink-l" src="img/plate-4-light.webp" width="1136" height="1385" loading="lazy" decoding="async" alt="Figure EM-04, growth pattern: a pencil drawing of a vine climbing a pole through four steps, bottom to top: listings, 5,000+ postings filtered; tailor, resume and cover letter; review, you approve or skip; submit, reserved: by you. The whole climb takes one day.">
+          <img class="ink-d" src="img/plate-4-dark.webp" width="1136" height="1385" loading="lazy" decoding="async" alt="Figure EM-04, growth pattern: a pencil drawing of a vine climbing a pole through four steps, bottom to top: listings, 5,000+ postings filtered; tailor, resume and cover letter; review, you approve or skip; submit, reserved: by you. The whole climb takes one day.">
           <span class="wash" aria-hidden="true"></span><span class="fgrain" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span>
           <figcaption class="caption">Fig. EM-04 · Growth pattern</figcaption>
         </figure>
@@ -190,42 +191,9 @@
             <div><dt>data/</dt><dd>job list, logins, logs</dd></div>
           </dl>
         </div>
-        <figure class="drawing photo">
-          <svg viewBox="0 0 520 440" role="img" aria-labelledby="pot-d-title pot-d-desc">
-            <title id="pot-d-title">Plate V, pot detail</title>
-            <desc id="pot-d-desc">A section through the pot shows three layers of soil labelled profile, resumes and data. An arrow leaving the pot towards a cloud is crossed out: no upload.</desc>
-            <g class="k">
-              <path d="M260 30 V420 M40 360 H480" pathLength="1"/>
-              <path d="M150 22 H370 M150 16 V28 M370 16 V28 M108 100 V340 M102 100 H114 M102 340 H114" pathLength="1"/>
-            </g>
-            <g class="w">
-              <path class="band band-1" d="M152 110 H368 L363 170 H157 Z"/>
-              <path class="band band-2" d="M157 170 H363 L356 240 H164 Z"/>
-              <path class="band band-3" d="M164 240 H356 L346 340 H174 Z"/>
-            </g>
-            <g class="i">
-              <path d="M144 100 H376 M150 100 L174 340 H346 L370 100 M144 110 H376" pathLength="1"/>
-              <path d="M157 170 H363 M164 240 H356" pathLength="1"/>
-              <path d="M260 100 V58" pathLength="1"/>
-              <path d="M240 300 C230 320 236 334 226 340 M280 296 C292 318 286 330 296 340 M260 290 V340" pathLength="1"/>
-            </g>
-            <g class="lf">
-              <use href="#leaf" transform="translate(260 72) rotate(-35) scale(.7)"/>
-              <use href="#leaf" transform="translate(260 86) rotate(-145) scale(.7)"/>
-            </g>
-            <g class="i">
-              <path class="clay" d="M378 128 C420 112 444 90 462 66 M452 66 H462 V76" pathLength="1"/>
-            </g>
-            <g class="t">
-              <text x="260" y="146" text-anchor="middle" class="t-mono">profile/</text>
-              <text x="260" y="212" text-anchor="middle" class="t-mono">resumes/</text>
-              <text x="260" y="296" text-anchor="middle" class="t-mono">data/</text>
-              <text x="260" y="12" text-anchor="middle">Ø · YOUR LAPTOP</text>
-              <text x="96" y="220" class="t-dim" transform="rotate(-90 96 220)">LOCAL</text>
-              <path class="x-clay" d="M404 86 L424 106 M424 86 L404 106"/>
-              <text x="430" y="136" class="clay-text">NO UPLOAD</text>
-            </g>
-          </svg>
+        <figure class="drawing photo photo-paper">
+          <img class="ink-l" src="img/plate-5-light.webp" width="1420" height="1104" loading="lazy" decoding="async" alt="Figure EM-05, pot detail: a pencil drawing of a seedling in a pot, cut away to show three layers labelled profile, resumes and data. The pot is measured as your laptop and marked local; an arrow leaving it is crossed out: no upload.">
+          <img class="ink-d" src="img/plate-5-dark.webp" width="1420" height="1104" loading="lazy" decoding="async" alt="Figure EM-05, pot detail: a pencil drawing of a seedling in a pot, cut away to show three layers labelled profile, resumes and data. The pot is measured as your laptop and marked local; an arrow leaving it is crossed out: no upload.">
           <span class="wash" aria-hidden="true"></span><span class="fgrain" aria-hidden="true"></span><span class="flash" aria-hidden="true"></span>
           <figcaption class="caption">Fig. EM-05 · Pot detail · section A–A</figcaption>
         </figure>
