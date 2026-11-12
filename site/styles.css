@@ -27,8 +27,9 @@
   --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.2 -.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   color-scheme: light dark;
 }
+/* Dark theme: when chosen with the toggle, or when the system is dark and light wasn't chosen. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #171613;
     --paper-2: #1f1d1a;
     --card: #23211d;
@@ -52,6 +53,31 @@
     --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
+:root[data-theme="dark"] {
+  --paper: #171613;
+  --paper-2: #1f1d1a;
+  --card: #23211d;
+  --ink: #efe9dd;
+  --ink-2: #cfc7b8;
+  --muted: #a39b8d;
+  --line: #3a3630;
+  --graphite: #e4ddcf;
+  --construct: #5a5348;
+  --gold: #cfa95e;
+  --gold-ink: #d8b46c;
+  --mint: #7cc3a1;
+  --mint-ink: #10241b;
+  --mint-soft: #1f3329;
+  --leaf: #3d6b53;
+  --clay: #e08a63;
+  --clay-ink: #e08a63;
+  --clay-soft: #3b261c;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-opacity: .05;
+  --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -85,11 +111,12 @@ code { font-family: var(--mono); font-size: .9em; }
 .skip:focus { left: 24px; }
 
 /* ---------- the sheet: grain, drafting frame, title block ---------- */
-.grain {
-  position: fixed; inset: -60px; z-index: 60; pointer-events: none;
+/* A fixed, clipped frame; only its inner layer jitters, so the grain never widens the page on phones. */
+.grain { position: fixed; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; opacity: var(--grain-opacity); }
+.grain::before {
+  content: ""; position: absolute; inset: -60px;
   background-image: var(--grain); background-size: 180px 180px;
-  opacity: var(--grain-opacity); will-change: transform;
-  animation: grain .9s steps(6) infinite;
+  will-change: transform; animation: grain .9s steps(6) infinite;
 }
 @keyframes grain {
   0% { transform: translate3d(0, 0, 0); } 17% { transform: translate3d(-22px, 14px, 0); }
@@ -97,7 +124,7 @@ code { font-family: var(--mono); font-size: .9em; }
   67% { transform: translate3d(26px, 20px, 0); } 83% { transform: translate3d(-30px, 4px, 0); }
   100% { transform: translate3d(0, 0, 0); }
 }
-.hidden-tab .grain { animation-play-state: paused; }
+.hidden-tab .grain::before { animation-play-state: paused; }
 
 .frame { position: fixed; inset: 14px; border: 1px solid var(--line); pointer-events: none; z-index: 40; }
 .frame span { position: absolute; width: 12px; height: 12px; border: 0 solid var(--graphite); }
@@ -134,6 +161,28 @@ code { font-family: var(--mono); font-size: .9em; }
 .btn-quiet { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 .btn-quiet:hover { background: var(--paper-2); color: var(--ink); }
 .btn-small { padding: 8px 16px; font-size: 13px; }
+/* Light / dark toggle: a darkroom switch */
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent; color: var(--ink-2); cursor: pointer;
+  font: 500 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink-2); }
+.theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.theme-toggle .moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .moon { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .sun { display: none; }
+  :root:not([data-theme="light"]) .theme-toggle .moon { display: block; }
+}
+@media (max-width: 520px) {
+  .theme-toggle .tt-label { display: none; } .theme-toggle { padding: 0 8px; }
+  .nav nav { gap: 10px; } .brand { letter-spacing: .3em; font-size: 12px; } .btn-small { padding: 8px 13px; }
+  .schedule table { table-layout: fixed; font-size: 13px; }
+  .schedule th, .schedule td { padding: 8px 7px; overflow-wrap: anywhere; }
+  .schedule td:last-child { font-size: 14px; }
+}
 
 /* ---------- plates ---------- */
 /* Each plate exposes four 0-1 values that the drawing reads. Without JS (or with reduced motion) they stay 1: fully drawn. */
@@ -229,7 +278,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 
 /* ---------- the reveal: each image starts washed out under heavy grain and clears as it settles ---------- */
 .photo { position: relative; margin: 0; isolation: isolate; }
-.photo-hero { justify-self: center; width: min(100%, calc((100svh - 170px) * 1087 / 1447)); isolation: auto; }
+.photo-hero { justify-self: center; width: min(100%, calc((100svh - 170px) * 1087 / 1447)); isolation: auto; overflow: clip; }
 /* No edges: the drawing fades out in a soft oval, and multiply lets the page's own paper show through its paper
    (brightened first so its slightly grey paper reads as white). The oval grows from the centre as it develops. */
 .photo-hero {
@@ -251,7 +300,8 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
   background: radial-gradient(ellipse at 50% 45%, #fff 0%, rgba(255,255,255,.85) 40%, rgba(255,255,255,0) 75%); }
 .photo.flashing .flash { animation: flash .7s cubic-bezier(.1,.8,.2,1); }
 @keyframes flash { 0% { opacity: 0; } 5% { opacity: .95; } 12% { opacity: .55; } 16% { opacity: .8; } 100% { opacity: 0; } }
-@media (prefers-color-scheme: dark) { .photo .flash { mix-blend-mode: screen; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo .flash { mix-blend-mode: screen; } }
+:root[data-theme="dark"] .photo .flash { mix-blend-mode: screen; }
 
 /* Classified-file details */
 .file-line { font: 500 11px var(--mono); letter-spacing: .14em; color: var(--muted); margin-bottom: clamp(12px, 2.4vh, 22px); }
@@ -264,7 +314,8 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 }
 .confidential span { font: 600 18px var(--mono); letter-spacing: .3em; text-transform: uppercase; }
 .confidential small { font: 500 9px var(--mono); letter-spacing: .18em; text-transform: uppercase; }
-@media (prefers-color-scheme: dark) { .confidential { mix-blend-mode: normal; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .confidential { mix-blend-mode: normal; } }
+:root[data-theme="dark"] .confidential { mix-blend-mode: normal; }
 .photo .wash { position: absolute; inset: 0; background: var(--paper); opacity: calc((1 - var(--clear)) * .7); pointer-events: none; z-index: 1; }
 .photo .fgrain {
   position: absolute; inset: -40px; z-index: 2; pointer-events: none;
@@ -277,7 +328,8 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .hidden-tab .photo .fgrain { animation-play-state: paused; }
 /* Paper drawings would glare on a dark page: show them as chalk on dark paper instead. */
 /* Dark mode: chalk on dark paper. Lighten keeps only the light lines; the drawing's dark paper disappears into the page. */
-@media (prefers-color-scheme: dark) { .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; } }
+:root[data-theme="dark"] .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; }
 
 /* ---------- field recording (video placeholder) ---------- */
 .film { position: relative; max-width: 940px; aspect-ratio: 16 / 9; border: 1px solid var(--line);
@@ -361,7 +413,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; }
-  .grain, .photo .fgrain { animation: none; }
+  .grain::before, .photo .fgrain { animation: none; }
   .photo.flashing .flash { animation: none; }
   .btn, .stamp { transition: none; }
 }

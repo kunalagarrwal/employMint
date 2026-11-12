@@ -161,6 +161,28 @@
     });
   }
 
+  // ---------- light / dark toggle ----------
+  // The page follows the system until you choose; your choice is remembered on this device.
+  const root = document.documentElement;
+  const toggle = document.querySelector(".theme-toggle");
+  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+  const isDark = () => (root.dataset.theme ? root.dataset.theme === "dark" : systemDark.matches);
+  const syncToggle = () => {
+    const dark = isDark();
+    if (toggle) toggle.setAttribute("aria-pressed", String(dark));
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", dark ? "#171613" : "#f2ede2"));
+  };
+  if (toggle) {
+    toggle.addEventListener("click", () => {
+      const next = isDark() ? "light" : "dark";
+      root.dataset.theme = next;
+      try { localStorage.setItem("employmint-theme", next); } catch (e) { /* private mode: still switches */ }
+      syncToggle();
+    });
+  }
+  systemDark.addEventListener("change", syncToggle);
+  syncToggle();
+
   // Film grain is an endless animation: stop it while the tab is hidden.
   document.addEventListener("visibilitychange", () => {
     document.documentElement.classList.toggle("hidden-tab", document.visibilityState === "hidden");
