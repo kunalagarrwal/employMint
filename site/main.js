@@ -20,6 +20,12 @@
     });
   });
 
+  // A camera flash on an image: the specimen is photographed for the file.
+  const flash = (el) => {
+    const ph = el && el.querySelector(".photo");
+    if (!ph || reduce) return;
+    ph.classList.remove("flashing"); void ph.offsetWidth; ph.classList.add("flashing");
+  };
   const nav = document.querySelector(".nav");
   const plates = [...document.querySelectorAll(".plate")];
   const hero = document.querySelector(".plate-hero");
@@ -46,6 +52,7 @@
       if (p < 1) requestAnimationFrame(tick);
     };
     hero.style.setProperty("--clear", "0");
+    setTimeout(() => flash(hero), 180);
     requestAnimationFrame(tick);
   }
 
@@ -63,6 +70,7 @@
     const pl = plates[idx];
     const key = pl.dataset.plate + pl.dataset.name;
     if (key !== current && sheetNo) {
+      if (current) flash(pl); // each plate is photographed as it arrives
       current = key;
       sheetNo.textContent = pl.dataset.plate;
       sheetName.textContent = pl.dataset.name;

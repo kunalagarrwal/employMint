@@ -161,7 +161,7 @@ h1 em { color: var(--mint); }
 .fineprint { font-size: 14px; color: var(--muted); margin-top: clamp(10px, 2vh, 18px); }
 @media (max-height: 640px) { .fineprint { display: none; } }
 
-.plate-no { font: 500 12px var(--sans); letter-spacing: .26em; text-transform: uppercase; color: var(--gold-ink); }
+.plate-no { font: 500 12px var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--gold-ink); }
 h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .plate-claim { font: italic 400 clamp(20px, 2vw, 24px) var(--serif); color: var(--mint); margin: 10px 0 18px; }
 .plate-text > p:not(.plate-no):not(.plate-claim) { color: var(--ink-2); max-width: 32em; }
@@ -233,18 +233,38 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 /* No edges: the drawing fades out in a soft oval, and multiply lets the page's own paper show through its paper
    (brightened first so its slightly grey paper reads as white). The oval grows from the centre as it develops. */
 .photo-hero {
-  --r: calc(12% + var(--clear) * 54%);
+  --r: calc(10% + var(--clear) * 62%);
   -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 var(--r), transparent calc(var(--r) + 34%));
           mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 var(--r), transparent calc(var(--r) + 34%));
 }
 .photo-hero img {
   width: 100%; height: auto; display: block; mix-blend-mode: multiply;
-  filter: brightness(1.1) contrast(.94) sepia(.12);
-  opacity: calc(.3 + var(--clear) * .62);
+  filter: brightness(1.07) contrast(1.16) sepia(.1);
+  opacity: calc(.22 + var(--clear) * .78);
   transform: scale(calc(1.06 - var(--clear) * .06)); will-change: transform, opacity;
 }
 .photo-hero .wash { display: none; }
-.photo-hero .fgrain { inset: -40px; opacity: calc(.34 + (1 - var(--clear)) * .4); }
+.photo-hero .fgrain { inset: -40px; opacity: calc(.26 + (1 - var(--clear)) * .45); }
+.plate-hero .wrap { position: relative; }
+/* Camera flash: a specimen being photographed for the file. */
+.photo .flash { position: absolute; inset: -20px; z-index: 3; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 45%, #fff 0%, rgba(255,255,255,.85) 40%, rgba(255,255,255,0) 75%); }
+.photo.flashing .flash { animation: flash .7s cubic-bezier(.1,.8,.2,1); }
+@keyframes flash { 0% { opacity: 0; } 5% { opacity: .95; } 12% { opacity: .55; } 16% { opacity: .8; } 100% { opacity: 0; } }
+@media (prefers-color-scheme: dark) { .photo .flash { mix-blend-mode: screen; } }
+
+/* Classified-file details */
+.file-line { font: 500 11px var(--mono); letter-spacing: .14em; color: var(--muted); margin-bottom: clamp(12px, 2.4vh, 22px); }
+.redact { display: inline-block; background: var(--ink); color: transparent; padding: 0 .4em; border-radius: 1px; user-select: none; }
+.confidential {
+  position: absolute; right: 1%; top: 14%; z-index: 4; pointer-events: none; margin: 0;
+  display: grid; justify-items: center; gap: 2px; padding: 8px 14px; color: var(--clay-ink);
+  border: 2px solid var(--clay); outline: 1px solid var(--clay); outline-offset: 3px; transform: rotate(7deg);
+  mix-blend-mode: multiply; opacity: calc(var(--clear) * .85);
+}
+.confidential span { font: 600 18px var(--mono); letter-spacing: .3em; text-transform: uppercase; }
+.confidential small { font: 500 9px var(--mono); letter-spacing: .18em; text-transform: uppercase; }
+@media (prefers-color-scheme: dark) { .confidential { mix-blend-mode: normal; } }
 .photo .wash { position: absolute; inset: 0; background: var(--paper); opacity: calc((1 - var(--clear)) * .7); pointer-events: none; z-index: 1; }
 .photo .fgrain {
   position: absolute; inset: -40px; z-index: 2; pointer-events: none;
@@ -330,6 +350,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 @media (max-width: 699px) {
   .plate-hero .plate-grid { grid-template-columns: 1fr; }
   .photo-hero { width: min(78vw, calc(46svh * 1087 / 1447)); }
+  .confidential { right: 2%; top: auto; bottom: 30%; transform: rotate(7deg) scale(.75); }
   .nav nav a:not(.btn) { display: none; }
   .next { grid-template-columns: 1fr; }
   .drawing-tall svg { max-height: none; }
@@ -341,5 +362,6 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; }
   .grain, .photo .fgrain { animation: none; }
+  .photo.flashing .flash { animation: none; }
   .btn, .stamp { transition: none; }
 }
