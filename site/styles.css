@@ -148,16 +148,18 @@ html.paged { scroll-snap-type: none; scroll-behavior: auto; }
 .plate-grid-flip { grid-template-columns: 1.15fr .85fr; }
 .plate-grid > * { min-width: 0; }
 
-.plate-hero .plate-grid { grid-template-columns: 1.1fr .9fr; }
+.plate-hero .plate-grid { grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); gap: clamp(24px, 5vw, 80px); }
+.plate-hero { padding-block: clamp(12px, 3vh, 40px); }
 .rule { width: 56px; height: 2px; background: var(--gold); }
-.specimen { font: 500 clamp(20px, 2.2vw, 28px) var(--serif); letter-spacing: .42em; margin-top: 22px; }
+.specimen { font: 500 clamp(15px, min(1.9vw, 2.9vh), 26px) var(--serif); letter-spacing: .42em; margin-top: clamp(10px, 2vh, 22px); }
 .latin { font: italic 400 18px var(--serif); color: var(--ink-2); margin-top: 4px; }
-h1 { margin-top: 40px; font-size: clamp(40px, 5vw, 66px); line-height: 1.04; letter-spacing: -0.01em; text-wrap: balance; }
+h1 { margin-top: clamp(14px, 3.4vh, 40px); font-size: clamp(30px, min(4.6vw, 7.4vh), 62px); line-height: 1.04; letter-spacing: -0.01em; text-wrap: balance; }
 h1 em { color: var(--mint); }
 @media (min-width: 600px) { h1 em { white-space: nowrap; } }
-.lede { font-size: clamp(17px, 1.8vw, 19px); color: var(--ink-2); margin-top: 22px; max-width: 34em; }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-.fineprint { font-size: 14px; color: var(--muted); margin-top: 18px; }
+.lede { font-size: clamp(15px, min(1.55vw, 2.3vh), 19px); color: var(--ink-2); margin-top: clamp(10px, 2.2vh, 22px); max-width: 34em; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: clamp(14px, 3vh, 30px); }
+.fineprint { font-size: 14px; color: var(--muted); margin-top: clamp(10px, 2vh, 18px); }
+@media (max-height: 640px) { .fineprint { display: none; } }
 
 .plate-no { font: 500 12px var(--sans); letter-spacing: .26em; text-transform: uppercase; color: var(--gold-ink); }
 h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
@@ -227,8 +229,22 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 
 /* ---------- the reveal: each image starts washed out under heavy grain and clears as it settles ---------- */
 .photo { position: relative; margin: 0; isolation: isolate; }
-.photo-hero { justify-self: center; width: min(100%, calc((100svh - 150px) * 1087 / 1447)); overflow: hidden; }
-.photo-hero img { width: 100%; height: auto; display: block; transform: scale(calc(1.05 - var(--clear) * .05)); will-change: transform; }
+.photo-hero { justify-self: center; width: min(100%, calc((100svh - 170px) * 1087 / 1447)); isolation: auto; }
+/* No edges: the drawing fades out in a soft oval, and multiply lets the page's own paper show through its paper
+   (brightened first so its slightly grey paper reads as white). The oval grows from the centre as it develops. */
+.photo-hero {
+  --r: calc(12% + var(--clear) * 54%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 var(--r), transparent calc(var(--r) + 34%));
+          mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 var(--r), transparent calc(var(--r) + 34%));
+}
+.photo-hero img {
+  width: 100%; height: auto; display: block; mix-blend-mode: multiply;
+  filter: brightness(1.1) contrast(.94) sepia(.12);
+  opacity: calc(.3 + var(--clear) * .62);
+  transform: scale(calc(1.06 - var(--clear) * .06)); will-change: transform, opacity;
+}
+.photo-hero .wash { display: none; }
+.photo-hero .fgrain { inset: -40px; opacity: calc(.34 + (1 - var(--clear)) * .4); }
 .photo .wash { position: absolute; inset: 0; background: var(--paper); opacity: calc((1 - var(--clear)) * .7); pointer-events: none; z-index: 1; }
 .photo .fgrain {
   position: absolute; inset: -40px; z-index: 2; pointer-events: none;
@@ -240,7 +256,8 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .drawing.photo .wash, .drawing.photo .fgrain { bottom: 40px; }
 .hidden-tab .photo .fgrain { animation-play-state: paused; }
 /* Paper drawings would glare on a dark page: show them as chalk on dark paper instead. */
-@media (prefers-color-scheme: dark) { .photo-hero img { filter: invert(.9) hue-rotate(180deg) sepia(.12); } }
+/* Dark mode: chalk on dark paper. Lighten keeps only the light lines; the drawing's dark paper disappears into the page. */
+@media (prefers-color-scheme: dark) { .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; } }
 
 /* ---------- field recording (video placeholder) ---------- */
 .film { position: relative; max-width: 940px; aspect-ratio: 16 / 9; border: 1px solid var(--line);
@@ -303,11 +320,16 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 @media (max-width: 900px) {
   .wrap { width: min(1080px, 100% - 44px); }
   .frame { inset: 8px; }
-  .plate-grid, .plate-grid-flip, .plate-hero .plate-grid, .schedule { grid-template-columns: 1fr; }
+  .plate-grid, .plate-grid-flip, .schedule { grid-template-columns: 1fr; }
   .plate-grid-flip .drawing { order: 2; }
   html { scroll-snap-type: y proximity; }
   .plate { min-height: 0; scroll-snap-stop: normal; }
-  .photo-hero { width: min(100%, 420px); }
+  .photo-hero { width: min(100%, calc((100svh - 170px) * 1087 / 1447)); }
+}
+/* Below 700px the intro stacks: a smaller drawing under the text, so both fit with little scrolling. */
+@media (max-width: 699px) {
+  .plate-hero .plate-grid { grid-template-columns: 1fr; }
+  .photo-hero { width: min(78vw, calc(46svh * 1087 / 1447)); }
   .nav nav a:not(.btn) { display: none; }
   .next { grid-template-columns: 1fr; }
   .drawing-tall svg { max-height: none; }

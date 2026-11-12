@@ -37,11 +37,11 @@
     geo = { plates: plates.map((pl) => docTop(pl)), reveals: reveals.map((r) => docTop(r.el)) };
   };
 
-  // The first plate is already on screen: its wash wears off over 1.6s after load.
+  // The first plate is already on screen: it develops out of the wash over 2.6s after load.
   if (!reduce && hero) {
     const start = performance.now() + 200;
     const tick = (now) => {
-      const p = clamp((now - start) / 1600);
+      const p = clamp((now - start) / 2600); // a slower develop, like a print coming up in the tray
       hero.style.setProperty("--clear", smooth(p).toFixed(3));
       if (p < 1) requestAnimationFrame(tick);
     };
