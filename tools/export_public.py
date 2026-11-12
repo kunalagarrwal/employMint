@@ -1,8 +1,10 @@
 """Builds a shareable copy of employMint that contains no one's personal data.
 
-Copies only an allowlist (code, tests, docs, skills, the made-up sample profile, install and agent files)
-into ../employMint-public and starts a fresh git history there, so nothing from this repo's history comes
-along. profile/, resumes/, data/, evals results and LinkedIn records are never copied.
+Copies only an allowlist (code, tests, docs, skills, website, the made-up sample profile, install and agent
+files) into ../employMint-public. The first time, it starts a fresh git history there, so nothing from this
+repo's history comes along. If the destination is already a git repo (the published copy), it keeps that
+history and adds one new commit, so the update can be pushed normally. profile/, resumes/, data/, evals
+results and LinkedIn records are never copied.
 
 Before finishing it scans every copied file (names and contents) for this machine's personal details,
 read from profile/ (name, email, phone, links, school, address, employers, projects), plus a fixed list.
@@ -19,11 +21,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ALLOW = ["src", "tests", "docs", "examples", ".claude/skills", "tools/export_public.py", "tools/snapshot.py",
+ALLOW = ["src", "tests", "docs", "examples", "site", ".github", ".claude/skills", "tools/export_public.py", "tools/snapshot.py",
          "README.md", "AGENTS.md", "CLAUDE.md", "install.sh", "requirements.txt", "requirements-dev.txt",
          "pytest.ini", ".gitignore", ".gitattributes", "LICENSE"]
 SKIP_PARTS = {"__pycache__", ".pytest_cache"}
 SKIP_SUFFIXES = {".pyc"}
+SITE_IMAGES = {".png", ".jpg", ".webp"}  # the only binary files allowed, and only under site/
 # Always forbidden, whatever the profile says: absolute home-folder paths.
 FORBIDDEN_STATIC = ["/" + "Users/", "/" + "home/"]  # split so this file doesn't match itself
 
@@ -58,6 +61,20 @@ def personal_strings():
     return {s.strip() for s in out if isinstance(s, str) and len(s.strip()) >= 4}
 
 
+def prepare_dest(dest):
+    """Empties dest for a new export. Returns True when dest is an existing git repo, whose .git is kept."""
+    dest = Path(dest)
+    if (dest / ".git").is_dir():
+        for child in dest.iterdir():
+            if child.name != ".git":
+                shutil.rmtree(child) if child.is_dir() and not child.is_symlink() else child.unlink()
+        return True
+    if dest.exists():
+        shutil.rmtree(dest)
+    dest.mkdir(parents=True)
+    return False
+
+
 def copy_tree(src, dst):
     if src.is_file():
         files = [(src, dst)]
@@ -72,17 +89,34 @@ def copy_tree(src, dst):
         shutil.copy2(f, out)  # keeps install.sh executable
 
 
-def leaks(dest, forbidden):
+def public_urls(owner):
+    """The project's own public addresses, which may contain the owner's GitHub handle."""
+    return [f"github.com/{owner}/employMint", f"{owner}.github.io/employMint"] if owner else []
+
+
+def origin_owner(dest):
+    """GitHub owner of the published copy's origin remote, or None."""
+    url = subprocess.run(["git", "remote", "get-url", "origin"], cwd=dest, capture_output=True, text=True).stdout
+    m = re.search(r"github\.com[:/]([^/]+)/", url)
+    return m.group(1) if m else None
+
+
+def leaks(dest, forbidden, allowed=()):
     found = []
     for f in dest.rglob("*"):
         if not f.is_file() or ".git" in f.relative_to(dest).parts:
             continue
         rel = str(f.relative_to(dest))
-        try:
-            text = f.read_text(encoding="utf-8")
-        except UnicodeDecodeError:
-            found.append(f"{rel}: binary file (not allowed in the public copy)")
-            continue
+        if f.suffix in SITE_IMAGES and f.relative_to(dest).parts[0] == "site":
+            text = ""  # website images: only the file name is checked
+        else:
+            try:
+                text = f.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                found.append(f"{rel}: binary file (not allowed in the public copy)")
+                continue
+        for url in allowed:  # the project's own public URLs are fine
+            text = re.sub(re.escape(url), "", text, flags=re.I)
         # Whole words only, so a short project name doesn't match inside a longer word.
         found += [f"{rel}: contains {s!r}" for s in forbidden
                   if re.search(rf"(?<!\w){re.escape(s)}(?!\w)", text + "\n" + rel, re.I)]
@@ -99,14 +133,17 @@ def main():
     if not personal:
         print("WARN no profile/ found, so only the fixed checks run.")
     forbidden = sorted(personal | set(FORBIDDEN_STATIC))
-    if dest.exists():
-        shutil.rmtree(dest)
+    updating = prepare_dest(dest)
     for rel in ALLOW:
         copy_tree(ROOT / rel, dest / rel)
 
-    found = leaks(dest, forbidden)
+    found = leaks(dest, forbidden, allowed=public_urls(origin_owner(dest)) if updating else ())
     if found:
-        shutil.rmtree(dest)
+        if updating:  # put the published copy back exactly as it was
+            subprocess.run(["git", "checkout", "--", "."], cwd=dest, check=False)
+            subprocess.run(["git", "clean", "-fdq"], cwd=dest, check=False)
+        else:
+            shutil.rmtree(dest)
         sys.exit("Personal data found; nothing exported:\n  " + "\n  ".join(found))
 
     tests = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=dest,
@@ -119,11 +156,18 @@ def main():
         shutil.rmtree(junk, ignore_errors=True)
     name = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True).stdout.strip() or "employMint"
     git = ["git", "-c", f"user.name={name}", "-c", "user.email=employmint@example.com"]
-    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=dest, check=True)
+    if not updating:
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=dest, check=True)
     subprocess.run(["git", "add", "-A"], cwd=dest, check=True)
-    subprocess.run(git + ["commit", "-q", "-m", "employMint: public snapshot"], cwd=dest, check=True)
     n = sum(1 for f in dest.rglob("*") if f.is_file() and ".git" not in f.relative_to(dest).parts)
-    print(f"Exported {n} files to {dest}, checked against {len(forbidden)} personal strings. Nothing was pushed.")
+    if updating and not subprocess.run(["git", "status", "--porcelain"], cwd=dest, capture_output=True,
+                                       text=True).stdout.strip():
+        print(f"No changes since the last export ({n} files). Nothing to commit.")
+        return
+    msg = "employMint: update from source" if updating else "employMint: public snapshot"
+    subprocess.run(git + ["commit", "-q", "-m", msg], cwd=dest, check=True)
+    print(f"{'Updated' if updating else 'Exported'} {n} files in {dest} (one new commit), checked against "
+          f"{len(forbidden)} personal strings. Nothing was pushed.")
 
 
 if __name__ == "__main__":

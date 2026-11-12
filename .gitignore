@@ -19,3 +19,5 @@ __pycache__/
 /evals/golden_answers.json
 /evals/history.jsonl
 /evals/report.md
+# Machine-specific preview server config (points at a local scratch folder)
+.claude/launch.json

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>employMint: Free Open-Source AI Internship Application Tool</title>
+  <meta name="description" content="Free, open-source tool that finds US internships, writes truthful tailored resumes, and fills applications with Claude Code. It stops before Submit.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://kunalagarrwal.github.io/employMint/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="employMint">
+  <meta property="og:title" content="employMint: Apply with AI. Submit yourself.">
+  <meta property="og:description" content="A free internship tool that runs on your computer. It finds roles, writes a truthful resume for each, fills the form, and stops before Submit.">
+  <meta property="og:url" content="https://kunalagarrwal.github.io/employMint/">
+  <meta property="og:image" content="https://kunalagarrwal.github.io/employMint/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="employMint: Apply with AI. Submit yourself. An application form filled in, with Submit left for you.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://kunalagarrwal.github.io/employMint/og.png">
+  <meta name="theme-color" content="#f5f0e6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script src="main.js" defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "employMint",
+    "url": "https://kunalagarrwal.github.io/employMint/",
+    "description": "Free, open-source internship application tool. It runs locally with your AI assistant, finds US internships, writes truthful tailored resumes, fills application forms, and stops before Submit.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "macOS, Linux, Windows (via WSL)",
+    "softwareRequirements": "Python 3.9 or newer, Google Chrome, an AI assistant such as Claude Code",
+    "isAccessibleForFree": true,
+    "license": "https://opensource.org/licenses/MIT",
+    "downloadUrl": "https://github.com/kunalagarrwal/employMint/archive/refs/heads/main.zip",
+    "sameAs": ["https://github.com/kunalagarrwal/employMint"],
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top" aria-label="employMint home">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14Z"/><path d="M5 19 13 11"/></svg>
+        <span>employMint</span>
+      </a>
+      <nav aria-label="Main">
+        <a href="#how">How it works</a>
+        <a href="#promises">Promises</a>
+        <a href="https://github.com/kunalagarrwal/employMint">GitHub</a>
+        <a class="btn btn-small" href="#get">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow hero-in">Free and open source. Runs on your computer.</p>
+          <h1 class="hero-in">Apply with AI.<br><em>Submit yourself.</em></h1>
+          <p class="lede hero-in">employMint is a free, open-source AI tool for internship applications. It finds roles that fit you, writes a truthful one-page resume for each, and fills in the application. Then it stops, so the last click is always yours.</p>
+          <div class="actions hero-in">
+            <a class="btn" href="#get">Get started</a>
+            <a class="btn btn-quiet" href="https://github.com/kunalagarrwal/employMint">View on GitHub</a>
+          </div>
+          <p class="fineprint hero-in">Built for Claude Code. Also works with Codex and other AI assistants.</p>
+        </div>
+
+        <figure class="form-demo hero-in" aria-labelledby="demo-cap">
+          <figcaption id="demo-cap" class="sr-only">Example application for a Software Engineer Intern role at Acme Robotics. Name, email, resume, the visa answer and a short essay are filled in. The gender question is left for you. Submit is not clicked: you do that.</figcaption>
+          <div class="sheet" aria-hidden="true">
+            <div class="sheet-head">
+              <span class="sheet-site">Software Engineer Intern</span>
+              <span class="sheet-co">Acme Robotics</span>
+            </div>
+            <div class="field"><span class="label">Full name</span><span class="value" data-type>Alex Rivera</span></div>
+            <div class="field"><span class="label">Email</span><span class="value" data-type>alex.rivera@example.com</span></div>
+            <div class="field"><span class="label">Resume</span><span class="value file" data-pop><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1h5l3 3v11H4z"/><path d="M9 1v3h3"/></svg>Alex_Rivera_Resume.pdf</span></div>
+            <div class="field"><span class="label">Will you need visa sponsorship?</span><span class="value choice" data-pop>No</span></div>
+            <div class="field"><span class="label">Why Acme?</span><span class="value long" data-type>In Databases this fall I designed the schema for a room-booking app that 3 campus offices now use…</span></div>
+            <div class="field flagged"><span class="label">Gender</span><span class="value choice" data-pop>Left for you</span></div>
+            <div class="sheet-foot">
+              <span class="status" data-status>Filled 5 of 6 · 1 left for you</span>
+              <span class="submit-wrap">
+                <span class="submit">Submit application</span>
+                <span class="you-click">You click this.</span>
+              </span>
+            </div>
+            <svg class="pointer" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 2 16 10.5 10 11.6 13.4 18l-2.3 1.1-3.4-6.5L3 16.6Z"/></svg>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="demo" id="demo" aria-labelledby="demo-title">
+      <div class="wrap">
+        <h2 id="demo-title" class="section-title reveal">See it work</h2>
+        <div class="video-frame reveal">
+          <div class="video-placeholder">
+            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+            <p>The demo video is on its way.</p>
+            <p class="muted">Two minutes, start to finish: set up, today's batch, a filled form, and you clicking Submit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <h2 id="how-title" class="section-title reveal">How it works</h2>
+        <div class="how-grid">
+          <ol class="steps" role="list" aria-label="Steps">
+            <li class="step is-active" data-step="1">
+              <span class="step-num" aria-hidden="true">01</span>
+              <h3>Install once</h3>
+              <p>Download the folder and run one command. It checks Python and Chrome and sets up a starter profile.</p>
+            </li>
+            <li class="step" data-step="2">
+              <span class="step-num" aria-hidden="true">02</span>
+              <h3>Say "set me up"</h3>
+              <p>Hand your AI assistant your resume. It asks a few questions and turns your experience into facts it's allowed to use. Nothing more.</p>
+            </li>
+            <li class="step" data-step="3">
+              <span class="step-num" aria-hidden="true">03</span>
+              <h3>Run today's batch</h3>
+              <p>Each day it picks the best new roles, tailors a resume for each, and lines them up for you to approve or skip.</p>
+            </li>
+          </ol>
+
+          <div class="panels">
+            <div class="panel" data-panel="1">
+              <span class="step-num panel-num" aria-hidden="true">01 · Install once</span>
+              <div class="terminal" role="group" aria-label="Example: terminal running the installer" tabindex="0">
+<pre><span class="t-dim">$</span> ./install.sh
+
+<span class="t-accent">==&gt;</span> Checking Python (3.9 or newer)
+Python 3.11.4
+
+<span class="t-accent">==&gt;</span> Looking for Google Chrome
+<span class="t-ok">found</span>
+
+<span class="t-accent">==&gt;</span> Setting up your profile folder
+Created profile/ from the sample applicant.
+
+<span class="t-accent">==&gt;</span> Done. Next: open this folder in your
+    AI assistant and say "Set me up".</pre>
+              </div>
+            </div>
+            <div class="panel" data-panel="2">
+              <span class="step-num panel-num" aria-hidden="true">02 · Say "set me up"</span>
+              <div class="chat" role="group" aria-label="Example setup chat">
+                <p class="bubble me"><span class="sr-only">You: </span>Set me up. Here's my resume.</p>
+                <p class="bubble ai"><span class="sr-only">Assistant: </span>Read it: 2 jobs, 2 projects, 11 facts. A few quick questions first. Will you need visa sponsorship, now or later?</p>
+                <p class="bubble me"><span class="sr-only">You: </span>No, I'm a US citizen.</p>
+                <p class="bubble ai"><span class="sr-only">Assistant: </span>Got it. Demographic questions will stay "decline to self-identify" unless you change them. Profile check passed.</p>
+              </div>
+            </div>
+            <div class="panel" data-panel="3">
+              <span class="step-num panel-num" aria-hidden="true">03 · Run today's batch</span>
+              <div class="review" role="group" aria-label="Example review page">
+                <div class="review-head"><span>Today</span><span class="muted">3 ready for you</span></div>
+                <div class="review-row"><div><strong>Acme Robotics</strong><span>Software Engineer Intern</span></div><span class="fit">Fit 8</span></div>
+                <div class="review-row"><div><strong>Northwind Health</strong><span>Data Engineering Intern</span></div><span class="fit">Fit 7</span></div>
+                <div class="review-row"><div><strong>Lumen Labs</strong><span>Mobile Engineer Intern</span></div><span class="fit">Fit 7</span></div>
+                <div class="review-actions" aria-hidden="true"><span class="pill">Approve</span><span class="pill pill-quiet">Skip</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="promises" id="promises" aria-labelledby="promises-title">
+      <div class="wrap">
+        <h2 id="promises-title" class="section-title reveal">Three things it will never do</h2>
+        <div class="promise-grid">
+          <article class="promise reveal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 12h8" stroke-dasharray="2 2"/></svg>
+            <h3><span class="never">Never</span> submit for you</h3>
+            <p>There's no code that clicks Submit. It fills the form, shows you what to check, and waits for you.</p>
+          </article>
+          <article class="promise reveal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12l2 2 4-4"/></svg>
+            <h3><span class="never">Never</span> invent a fact</h3>
+            <p>Every resume bullet points to something you told it. A number or tool it can't trace back gets rejected.</p>
+          </article>
+          <article class="promise reveal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
+            <h3><span class="never">Never</span> leave your laptop</h3>
+            <p>Your resume, answers and applications stay in a folder on your computer. No account, no upload.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="get" id="get" aria-labelledby="get-title">
+      <div class="wrap get-grid">
+        <div class="reveal">
+          <h2 id="get-title" class="section-title">Get employMint</h2>
+          <p class="get-lede">Free and MIT-licensed. You'll need macOS or Linux (Windows through WSL), Python 3.9+, Google Chrome, and an AI assistant like Claude Code.</p>
+          <a class="btn btn-large" href="https://github.com/kunalagarrwal/employMint/archive/refs/heads/main.zip">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+            Download ZIP
+          </a>
+          <p class="or">or clone it</p>
+          <div class="clone">
+            <code id="clone-cmd" tabindex="0">git clone https://github.com/kunalagarrwal/employMint.git</code>
+            <button class="copy" type="button" data-copy="#clone-cmd" aria-label="Copy the git clone command">Copy</button>
+          </div>
+          <p class="copy-status" role="status" aria-live="polite"></p>
+        </div>
+        <ol class="next reveal" role="list" aria-label="After downloading">
+          <li><span aria-hidden="true">1</span><div><strong>Open the folder in a terminal</strong><p>Unzip it first if you downloaded the ZIP.</p></div></li>
+          <li><span aria-hidden="true">2</span><div><strong>Run <code>./install.sh</code></strong><p>One time. Safe to run again.</p></div></li>
+          <li><span aria-hidden="true">3</span><div><strong>Open it in your AI assistant</strong><p>For Claude Code, run <code>claude</code> in the folder, then say <em>"Set me up"</em>.</p></div></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span class="brand brand-small">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14Z"/><path d="M5 19 13 11"/></svg>
+        employMint
+      </span>
+      <span class="muted">MIT licensed. Not affiliated with any job board or AI company.</span>
+      <a href="https://github.com/kunalagarrwal/employMint">employMint on GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>
