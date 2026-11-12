@@ -1,0 +1,21 @@
+# Runtime data: browser profiles hold login cookies; the database, logs and batches are personal.
+data/
+# Recruiter outreach records (names, messages) and its lock file
+linkedin/outreach.json
+linkedin/.outreach.lock
+# Machine-specific Claude Code permissions
+.claude/settings.local.json
+# Python / OS clutter
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+# Personal data: who you are, your answers, your tailored resumes and your eval set.
+# It stays on your computer and is never committed. New users start from examples/profile/.
+/profile/
+/resumes/
+/linkedin/
+/evals/golden_answers.json
+/evals/history.jsonl
+/evals/report.md

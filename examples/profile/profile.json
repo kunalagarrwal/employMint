@@ -1,0 +1,180 @@
+{
+  "_about": "Sample master profile for a made-up applicant. It is the ONLY source of facts the tailoring step may use: every resume bullet must trace back to an entry here. The setup step builds yours from your resume.",
+  "source": "profile/source-resume.pdf",
+  "contact": {
+    "name": "Alex Rivera",
+    "phone": "555-010-0199",
+    "email": "alex.rivera@example.com",
+    "linkedin": "https://www.linkedin.com/in/example",
+    "github": "https://github.com/example"
+  },
+  "education": [
+    {
+      "school": "University of Example",
+      "college": "College of Engineering",
+      "location": "Springfield, IL",
+      "degree": "B.S. Computer Science",
+      "minor": "Mathematics",
+      "graduation": "May 2028",
+      "gpa": "3.60/4.0",
+      "honors": [
+        "Dean's List"
+      ],
+      "start": "2024-08",
+      "coursework": {
+        "_rule": "Only list 'completed' and 'in_progress_*' as coursework. The upcoming term (e.g. 'spring_2027') may be shown as upcoming only if relevant. Never show grades.",
+        "completed": {
+          "cs": [
+            "Data Structures & Algorithms (CS 210)",
+            "Computer Systems (CS 220)",
+            "Discrete Mathematics (CS 150)"
+          ],
+          "math": [
+            "Calculus I & II (MATH 151/152)",
+            "Linear Algebra (MATH 240)"
+          ]
+        },
+        "in_progress_fall_2026": [
+          "Databases (CS 340)",
+          "Software Engineering (CS 360)"
+        ],
+        "spring_2027": [
+          "Machine Learning (CS 450)"
+        ]
+      }
+    }
+  ],
+  "experience": [
+    {
+      "id": "campus-it",
+      "org": "University of Example IT Services",
+      "title": "Student Developer",
+      "location": "Springfield, IL",
+      "start": "2025-01",
+      "end": "present",
+      "tags": [
+        "swe",
+        "fullstack"
+      ],
+      "facts": [
+        "Built an internal room-booking web app in React and Flask used by 3 campus offices",
+        "Cut page load time from 4 seconds to under 1 second by caching API responses",
+        "Wrote 40+ unit tests with pytest and set up GitHub Actions to run them on every pull request"
+      ],
+      "skills": [
+        "React",
+        "Flask",
+        "Python",
+        "pytest",
+        "GitHub Actions"
+      ]
+    },
+    {
+      "id": "tutor",
+      "org": "Example Math Learning Center",
+      "title": "Peer Tutor",
+      "location": "Springfield, IL",
+      "start": "2024-09",
+      "end": "2025-05",
+      "tags": [
+        "leadership"
+      ],
+      "facts": [
+        "Tutored 15 students a week in calculus and linear algebra",
+        "Created practice worksheets later reused by 6 other tutors"
+      ],
+      "skills": [
+        "Teaching",
+        "Communication"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "budget-bot",
+      "name": "BudgetBot",
+      "url": "https://github.com/example/budgetbot",
+      "date": "2025-08",
+      "tags": [
+        "ai",
+        "swe"
+      ],
+      "facts": [
+        "Built a chat assistant that sorts bank transactions into budget categories using an LLM API",
+        "Reached 92% category accuracy on 500 hand-labeled transactions",
+        "Stored data in SQLite and served it through a small FastAPI backend"
+      ],
+      "skills": [
+        "Python",
+        "FastAPI",
+        "SQLite",
+        "LLM APIs"
+      ]
+    },
+    {
+      "id": "trail-map",
+      "name": "TrailMap",
+      "url": "https://github.com/example/trailmap",
+      "date": "2025-03",
+      "tags": [
+        "mobile"
+      ],
+      "facts": [
+        "Made a React Native app that shows nearby hiking trails on a map",
+        "Used by 120 people in its first month after posting it in a hiking club group chat"
+      ],
+      "skills": [
+        "React Native",
+        "TypeScript",
+        "Maps API"
+      ]
+    }
+  ],
+  "skills": {
+    "languages": [
+      "Python",
+      "JavaScript",
+      "TypeScript",
+      "Java",
+      "SQL"
+    ],
+    "frameworks_tools": [
+      "React",
+      "React Native",
+      "Flask",
+      "FastAPI",
+      "pytest",
+      "Git/GitHub",
+      "GitHub Actions"
+    ],
+    "design": [
+      "Figma"
+    ],
+    "spoken": [
+      "English",
+      "Spanish"
+    ],
+    "_note": "List only tools you could talk about in an interview."
+  },
+  "interests": [
+    "Hiking",
+    "Personal finance"
+  ],
+  "work_authorization": {
+    "status": "US citizen",
+    "internship_basis": "",
+    "requires_future_sponsorship": false,
+    "form_answers": {
+      "authorized_to_work_in_us": "Yes",
+      "will_require_sponsorship": "No"
+    }
+  },
+  "gaps_to_fill": [
+    "Add any hackathons, clubs or leadership roles"
+  ],
+  "interests_on_resume": [
+    "Hiking"
+  ],
+  "_interests_note": "Interests show on the resume only when there is room.",
+  "certifications": []
+}

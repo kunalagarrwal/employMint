@@ -1,0 +1,55 @@
+{
+ "season": "Summer 2027",
+ "country": "US",
+ "needs_sponsorship": false,
+ "sponsorship_rule": "Set needs_sponsorship to true if you will need a visa now or later. Then postings that require US citizenship/clearance or say they will never sponsor are skipped. Postings silent on it are kept.",
+ "tracks": {
+  "_status": "Sample. Reorder priorities (1 = most wanted) or delete tracks you don't want.",
+  "swe_fullstack_mobile": {
+   "priority": 1,
+   "titles": [
+    "Software Engineer Intern",
+    "Full Stack Intern",
+    "Mobile Engineer Intern",
+    "Frontend Intern"
+   ]
+  },
+  "ai_engineering": {
+   "priority": 1,
+   "titles": [
+    "AI Engineer Intern",
+    "Applied AI Intern",
+    "LLM / GenAI Engineer Intern"
+   ]
+  },
+  "product": {
+   "priority": 2,
+   "titles": [
+    "Product Management Intern",
+    "APM Intern",
+    "Technical Product Intern"
+   ]
+  },
+  "fintech_econ": {
+   "priority": 2,
+   "titles": [
+    "Software Engineer Intern (fintech)",
+    "Product Analyst Intern",
+    "Business Technology Analyst Intern"
+   ]
+  },
+  "product_design": {
+   "priority": 3,
+   "titles": [
+    "Product Design Intern",
+    "UX Engineer Intern"
+   ]
+  }
+ },
+ "exclude": [
+  "ML research",
+  "PhD-only",
+  "security clearance",
+  "unpaid"
+ ]
+}

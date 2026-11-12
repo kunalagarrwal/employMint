@@ -1,0 +1,2 @@
+# Fills application forms in your installed Google Chrome (no separate browser download).
+playwright>=1.40,<2

@@ -1,0 +1,503 @@
+{
+  "_about": "Sample answers for a made-up applicant (Alex Rivera, US citizen). The setup step replaces this with yours. 'values' fill {placeholders}; each rule matches a form question (q, regex) and gives text, option patterns (a) or a flag.",
+  "values": {
+    "first_name": "Alex",
+    "last_name": "Rivera",
+    "full_name": "Alex Rivera",
+    "email": "alex.rivera@example.com",
+    "phone": "555-010-0199",
+    "linkedin": "https://www.linkedin.com/in/example",
+    "github": "https://github.com/example",
+    "location": "Springfield, IL",
+    "city": "Springfield",
+    "state": "Illinois",
+    "country": "United States",
+    "school": "University of Example",
+    "degree": "Bachelor of Science",
+    "major": "Computer Science",
+    "minor": "Mathematics",
+    "gpa": "3.60",
+    "grad": "May 2028",
+    "grad_year": "2028",
+    "heard_from": "SimplifyJobs internship list (GitHub)",
+    "edu_start": "August 2024",
+    "edu_start_year": "2024",
+    "address_line1": "100 Example St",
+    "postal_code": "00000",
+    "address_line2": ""
+  },
+  "rules": [
+    {
+      "q": "resume|\\bcv\\b",
+      "kind": "file",
+      "text": "{resume}"
+    },
+    {
+      "q": "cover letter",
+      "kind": "file",
+      "text": "{cover}"
+    },
+    {
+      "q": "transcript",
+      "kind": "file",
+      "text": "{transcript}",
+      "flag": "Uploads profile/<First>_<Last>_Transcript.pdf if you saved one. Replace it when new grades post"
+    },
+    {
+      "q": "portfolio file|writing sample",
+      "kind": "file",
+      "flag": "Optional upload; add one only if you want to"
+    },
+    {
+      "q": "^cover letter|cover letter \\(paste|paste .{0,20}cover letter",
+      "kind": [
+        "textarea",
+        "text"
+      ],
+      "text": "{cover_text}"
+    },
+    {
+      "q": "consent|acknowledg|i agree|agree to|privacy|terms|certif|attest|accurate|truthful|sms|text messag|opt[- ]?in|whatsapp",
+      "flag": "Read this and answer it yourself"
+    },
+    {
+      "q": "pronounc",
+      "text": ""
+    },
+    {
+      "q": "extension",
+      "text": ""
+    },
+    {
+      "q": "phone device type|device type",
+      "a": [
+        "^mobile",
+        "cell"
+      ]
+    },
+    {
+      "q": "(legal|home|mailing|permanent|current|full|street) address\\b(?!.{0,15}line)|^address:?$",
+      "kind": [
+        "text",
+        "textarea"
+      ],
+      "text": "{address_line1}, {address_line2}, {city}, {state} {postal_code}"
+    },
+    {
+      "q": "address line 2|apartment|suite",
+      "text": "{address_line2}"
+    },
+    {
+      "q": "address line 1|street address|street and house|^street$|^address$",
+      "text": "{address_line1}"
+    },
+    {
+      "q": "postal|zip",
+      "text": "{postal_code}"
+    },
+    {
+      "q": "^city$",
+      "text": "{city}"
+    },
+    {
+      "q": "preferred (first )?name|nickname",
+      "text": "{first_name}"
+    },
+    {
+      "q": "^(legal )?first name|given name",
+      "text": "{first_name}"
+    },
+    {
+      "q": "^(legal )?last name|surname|family name",
+      "text": "{last_name}"
+    },
+    {
+      "q": "^((full|legal) )?name$|^(full|legal) name\\b|^your (full )?name$",
+      "text": "{full_name}"
+    },
+    {
+      "q": "e-?mail",
+      "text": "{email}"
+    },
+    {
+      "q": "phone|mobile",
+      "kind": "text",
+      "text": "{phone}"
+    },
+    {
+      "q": "linkedin",
+      "text": "{linkedin}"
+    },
+    {
+      "q": "github",
+      "text": "{github}"
+    },
+    {
+      "q": "^language$|^languages?$",
+      "kind": [
+        "listbox",
+        "select",
+        "combo"
+      ],
+      "a": [
+        "^english"
+      ]
+    },
+    {
+      "q": "fluent in this language|native",
+      "kind": "check",
+      "a": [
+        "^yes"
+      ]
+    },
+    {
+      "q": "^url$",
+      "text": "{github}"
+    },
+    {
+      "q": "website|portfolio|personal (site|url)|other (link|url)",
+      "kind": "text",
+      "text": "{github}"
+    },
+    {
+      "q": "twitter|^x\\b|instagram|facebook|blog",
+      "text": ""
+    },
+    {
+      "q": "current (company|employer)|present (company|employer)",
+      "kind": [
+        "text",
+        "textarea"
+      ],
+      "text": "University of Example IT Services (Student Developer)"
+    },
+    {
+      "q": "^company$|^org",
+      "text": ""
+    },
+    {
+      "q": "pronoun",
+      "flag": "Answer this yourself"
+    },
+    {
+      "q": "u\\.?s\\.? person|(are you|you are) a (u\\.?s\\.? |united states )?citizen",
+      "a": [
+        "^yes\\b"
+      ]
+    },
+    {
+      "q": "permanent resident|green card|lawful permanent",
+      "a": [
+        "^no\\b"
+      ]
+    },
+    {
+      "q": "citizenship|nationality",
+      "a": [
+        "^united states",
+        "\\bu\\.?s\\.?a?\\b"
+      ],
+      "text": "United States"
+    },
+    {
+      "q": "country of (birth|origin)",
+      "flag": "Country of birth: answer yourself"
+    },
+    {
+      "q": "authori[sz]ed.{0,80}(without|not require|no need).{0,30}sponsor|sponsor.{0,80}authori[sz]ed",
+      "a": [
+        "^yes\\b"
+      ],
+      "text": "Yes"
+    },
+    {
+      "q": "(require|need).{0,60}sponsor|sponsor.{0,80}(require|need)|visa sponsorship|sponsorship|file a petition|petition .{0,60}(immigration|visa)|immigration (status|benefit).{0,60}on your behalf",
+      "a": [
+        "^no\\b"
+      ],
+      "text": "No, I will not need sponsorship."
+    },
+    {
+      "q": "visa (type|status)|immigration status|current (visa|status)|type of (visa|work authori)|which visa",
+      "flag": "US citizen: usually not asked. Answer this yourself"
+    },
+    {
+      "q": "\\bcpt\\b|curricular practical",
+      "flag": "Answer this yourself"
+    },
+    {
+      "q": "\\bopt\\b|optional practical|stem extension|future (visa|work authori)",
+      "flag": "Answer this yourself"
+    },
+    {
+      "q": "legally (authori[sz]ed|eligible|permitted|able)|authori[sz]ed to work|eligible to work|right to work|work authori[sz]ation|legal right",
+      "a": [
+        "^yes\\b"
+      ],
+      "text": "Yes"
+    },
+    {
+      "q": "high school",
+      "flag": "High school question: answer yourself"
+    },
+    {
+      "q": "^start (date )?year|^start date$|education start",
+      "a": [
+        "^2024$",
+        "2024"
+      ],
+      "text": "{edu_start_year}"
+    },
+    {
+      "q": "^start (date )?month",
+      "a": [
+        "^aug"
+      ],
+      "text": "August"
+    },
+    {
+      "q": "^end (date )?month",
+      "a": [
+        "^may"
+      ],
+      "text": "May"
+    },
+    {
+      "q": "^are you (currently )?(enrolled|a (current )?student)\\b",
+      "a": [
+        "^yes\\b"
+      ],
+      "text": "Yes"
+    },
+    {
+      "q": "^degree$|degree (type|level|pursuing)|highest (level|degree)|level of (education|study)|education level|what degree",
+      "a": [
+        "bachelor",
+        "b\\.?s\\b",
+        "undergrad"
+      ],
+      "text": "{degree}"
+    },
+    {
+      "q": "graduation (year|yr)|year of graduation|grad(uation)? year|end (date )?year",
+      "a": [
+        "2028"
+      ],
+      "text": "{grad_year}"
+    },
+    {
+      "q": "graduat|expected (completion|grad)|completion date",
+      "a": [
+        "may 2028",
+        "spring 2028",
+        "2028"
+      ],
+      "text": "{grad}"
+    },
+    {
+      "q": "discipline|major|field of study|area of study|program of study|concentration",
+      "a": [
+        "computer science",
+        "computer"
+      ],
+      "text": "{major}"
+    },
+    {
+      "q": "\\bminor\\b",
+      "text": "{minor}"
+    },
+    {
+      "q": "school|university|college|institution|academic institution",
+      "a": [
+        "^(the )?university of example\\b"
+      ],
+      "text": "{school}",
+      "search": [
+        "University of Example"
+      ]
+    },
+    {
+      "q": "\\bgpa\\b|grade point",
+      "a": [
+        "3\\.5",
+        "3\\.25 ?- ?3\\.75",
+        "3\\.0"
+      ],
+      "text": "{gpa}"
+    },
+    {
+      "q": "currently enrolled|currently (a )?(student|pursuing)|enrolled (in|at)|are you a student|still (a )?student|currently attending",
+      "a": [
+        "^yes\\b"
+      ]
+    },
+    {
+      "q": "year in school|class standing|academic (year|standing)|current year|year of study|class year",
+      "flag": "Class standing: answer yourself"
+    },
+    {
+      "q": "18 years|age of 18|at least 18|over 18|legal age",
+      "a": [
+        "^yes\\b"
+      ]
+    },
+    {
+      "q": "previous employee|former employee|(worked|employed|interned) (for|at|by|with) .{0,60}(before|previously|in the past)|ever (worked|been employed|interned)|previously (worked|employed)|former (employee|intern|contractor)|current or former",
+      "a": [
+        "^no\\b"
+      ]
+    },
+    {
+      "q": "applied (to|for|at) .{0,40}before|previously applied",
+      "flag": "Have you applied here before? Answer yourself"
+    },
+    {
+      "q": "relative|family member|related to (any|an)|know anyone",
+      "flag": "Relatives/contacts at the company: answer yourself"
+    },
+    {
+      "q": "who referred|referr(er|al) name|name of (your )?referr",
+      "text": ""
+    },
+    {
+      "q": "referr|referred by",
+      "a": [
+        "^no\\b"
+      ]
+    },
+    {
+      "q": "how did you (first )?(hear|find|learn|connect|come)|where did you (first )?(hear|find|see|learn)|how .{0,20}(hear|heard|learn|learned|find|found) about|^source\\b|referral source",
+      "a": [
+        "simplify",
+        "github",
+        "^other\\b",
+        "job board",
+        "online job",
+        "job site",
+        "internet"
+      ],
+      "text": "{heard_from}"
+    },
+    {
+      "q": "hispanic|latin[oa]|latinx",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it in profile/answers.json if you want to share"
+    },
+    {
+      "q": "\\brace\\b|ethnic",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it in profile/answers.json if you want to share"
+    },
+    {
+      "q": "gender|\\bsex\\b(?! offender)",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it in profile/answers.json if you want to share"
+    },
+    {
+      "q": "veteran",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it in profile/answers.json if you want to share"
+    },
+    {
+      "q": "disabilit",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it in profile/answers.json if you want to share"
+    },
+    {
+      "q": "sexual orientation|transgender|lgbt",
+      "a": [
+        "decline",
+        "prefer not",
+        "not (wish|want) to",
+        "don'?t wish",
+        "choose not",
+        "not to (answer|say|disclose|self)"
+      ],
+      "flag": "Defaulted to 'decline'. Change it if you want to share"
+    },
+    {
+      "q": "\\bcity\\b|^location|current location|where are you (currently )?(located|based)|city of residence",
+      "a": [
+        "springfield,? (il|illinois)\\b"
+      ],
+      "text": "{location}",
+      "search": [
+        "Springfield, Illinois",
+        "Springfield"
+      ]
+    },
+    {
+      "q": "^country|country of residence|country you (live|reside)",
+      "a": [
+        "^united states",
+        "\\bus\\b",
+        "usa"
+      ],
+      "text": "{country}"
+    },
+    {
+      "q": "^state\\b|state of residence|state/province|province",
+      "a": [
+        "illinois",
+        "^il\\b"
+      ],
+      "text": "{state}"
+    },
+    {
+      "q": "relocat|on-?site|in[- ]office|our offices?|in person|hybrid|commut|willing to (work|move|be)|able to (work|commute)|anchor days",
+      "a": [
+        "^yes\\b"
+      ],
+      "text": "Yes"
+    },
+    {
+      "q": "salary|compensation|pay (expectation|range)|hourly rate|desired pay",
+      "flag": "Pay expectations: answer yourself"
+    },
+    {
+      "q": "summer 2027|availab|start date|when can you start|internship (term|season|dates)",
+      "a": [
+        "^yes\\b",
+        "summer 2027",
+        "may 2027",
+        "june 2027"
+      ],
+      "text": "Summer 2027"
+    }
+  ]
+}
