@@ -74,12 +74,34 @@
     if (toggle) toggle.setAttribute("aria-pressed", String(dark));
     document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", dark ? "#171613" : "#f2ede2"));
   };
-  // The ink stain is fetched once the page is idle, so the first switch already has it.
-  let inkReady = false;
-  if (toggle && !reduce && document.startViewTransition && CSS.supports("mask-size", "1px 1px")) {
-    const later = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
-    later(() => { const im = new Image(); im.onload = () => { inkReady = true; }; im.src = "img/ink-blot.png"; });
-  }
+  // Ink: the outline of a drop of ink spreading over paper from (x, y), as clip-path polygons over time. It is a vector
+  // shape, so the edge stays crisp at any size. The outline is a circle bent by a few slow, low lobes that drift as it
+  // grows, so it moves like liquid rather than a perfect circle, and its centre flows a little across the page.
+  const inkFrames = (x, y) => {
+    const W = innerWidth, H = innerHeight, N = 120, F = 36;
+    const lobes = [2, 3, 4, 5, 7, 11].map((k) => ({
+      k, a: (k < 6 ? 0.032 : 0.007) / Math.sqrt(k / 2), ph: Math.random() * 6.283, sp: (Math.random() - 0.5) * 1.6,
+    }));
+    const amp = lobes.reduce((s, l) => s + l.a, 0);
+    const dx = (W / 2 - x) * 0.22, dy = (H / 2 - y) * 0.22; // the ink runs a little towards the middle of the sheet
+    const far = Math.hypot(Math.max(x + dx, W - x - dx), Math.max(y + dy, H - y - dy));
+    const R = (far / (1 - amp)) * 1.04;
+    const frames = [];
+    for (let f = 0; f < F; f++) {
+      const t = f / (F - 1);
+      const p = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // gathers, spreads, then settles
+      const cx = x + dx * p, cy = y + dy * p, r = R * p;
+      const pts = [];
+      for (let i = 0; i < N; i++) {
+        const th = (i / N) * 6.283;
+        let w = 1;
+        for (const l of lobes) w += l.a * Math.sin(l.k * th + l.ph + l.sp * t * 3);
+        pts.push(`${(cx + Math.cos(th) * r * w).toFixed(1)}px ${(cy + Math.sin(th) * r * w).toFixed(1)}px`);
+      }
+      frames.push({ clipPath: `polygon(${pts.join(",")})`, offset: t });
+    }
+    return frames;
+  };
   if (toggle) {
     toggle.addEventListener("click", () => {
       const next = isDark() ? "light" : "dark";
@@ -89,35 +111,21 @@
         syncToggle();
       };
       if (reduce) { apply(); return; }
-      if (document.startViewTransition && inkReady) {
-        // Ink: going dark, a drop lands on the switch and soaks across the paper until the whole sheet is dark.
-        // Going light, the ink draws back out of the paper into the switch. The stain is an image used as a mask on
-        // the page snapshot (img/ink-blot.png), scaled from nothing to larger than the screen.
+      if (document.startViewTransition) {
+        // Going dark, ink spreads from the switch until the whole sheet is dark. Going light, the same ink draws
+        // back into the switch: the old (dark) page sits on top and its outline shrinks away.
         const b = toggle.getBoundingClientRect();
-        const x = b.left + b.width / 2, y = b.top + b.height / 2;
-        const reach = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-        const size = reach / 0.33; // the blot's solid core is about a third of its image: make the core cover the screen
-        const at = (s) => ({ maskSize: `${s}px ${s}px`, maskPosition: `${x - s / 2}px ${y - s / 2}px`,
-                             webkitMaskSize: `${s}px ${s}px`, webkitMaskPosition: `${x - s / 2}px ${y - s / 2}px` });
+        const frames = inkFrames(b.left + b.width / 2, b.top + b.height / 2);
         const soak = next === "dark";
         root.classList.add(soak ? "ink-in" : "ink-out");
         const vt = document.startViewTransition(apply);
         vt.ready.then(() => {
-          root.animate(soak ? [at(0), at(size * 0.18), at(size)] : [at(size), at(size * 0.18), at(0)], {
-            duration: soak ? 1300 : 1100, fill: "both", pseudoElement: soak ? "::view-transition-new(root)" : "::view-transition-old(root)",
-            easing: soak ? "cubic-bezier(.4, 0, .2, 1)" : "cubic-bezier(.6, 0, .5, 1)",
+          root.animate(soak ? frames : frames.reverse().map((k, i, a) => ({ ...k, offset: i / (a.length - 1) })), {
+            duration: soak ? 1250 : 1050, easing: "linear", fill: "both",
+            pseudoElement: soak ? "::view-transition-new(root)" : "::view-transition-old(root)",
           });
         }).catch(() => {});
         vt.finished.finally(() => root.classList.remove("ink-in", "ink-out"));
-      } else if (document.startViewTransition) {
-        // Ink stain not loaded yet: a plain circle from the switch.
-        const b = toggle.getBoundingClientRect();
-        const x = b.left + b.width / 2, y = b.top + b.height / 2;
-        const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-        document.startViewTransition(apply).ready.then(() => {
-          root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
-                       { duration: 750, easing: "cubic-bezier(.65, 0, .35, 1)", pseudoElement: "::view-transition-new(root)" });
-        }).catch(() => {});
       } else {
         // No View Transitions: colours fade across instead of snapping.
         root.classList.add("theme-fade");

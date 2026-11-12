@@ -160,13 +160,9 @@ code { font-family: var(--mono); font-size: .9em; }
 .theme-toggle { padding: 0 14px 0 10px; cursor: pointer; }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 ::view-transition-new(root) { z-index: 9999; }
-/* Ink switch: the incoming dark page (or the outgoing dark page, going light) is masked by an ink stain that main.js
-   grows from the switch or draws back into it. */
-.ink-in::view-transition-new(root), .ink-out::view-transition-old(root) {
-  -webkit-mask-image: url("img/ink-blot.png"); mask-image: url("img/ink-blot.png");
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; z-index: 9999; }
-.ink-in::view-transition-new(root) { -webkit-mask-size: 0 0; mask-size: 0 0; }
-.ink-out::view-transition-old(root) { -webkit-mask-size: 400vmax 400vmax; mask-size: 400vmax 400vmax; -webkit-mask-position: center; mask-position: center; }
+/* Ink switch: main.js clips the incoming dark page (or, going light, the outgoing dark page, which then sits on
+   top) to the outline of spreading ink. */
+.ink-out::view-transition-old(root) { z-index: 9999; }
 .ink-out::view-transition-new(root) { z-index: 1; }
 .theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
   transition: background-color .5s ease, color .5s ease, border-color .5s ease, fill .5s ease, stroke .5s ease, opacity .5s ease !important;
@@ -304,7 +300,9 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 }
 .js .photo .fgrain { opacity: .8; }
 .js .on .photo .fgrain { opacity: .2; }
-.drawing.photo .fgrain { bottom: 40px; }
+:root[data-theme="dark"] .on .photo .fgrain { opacity: .1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .on .photo .fgrain { opacity: .1; } }
+.drawing.photo .fgrain, .photo-paper .fgrain { bottom: 40px; }
 
 .photo-hero { justify-self: center; width: min(100%, calc((100svh - 170px) * 1087 / 1447)); }
 .photo-hero img { width: 100%; height: auto; }
@@ -312,20 +310,6 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 
 /* Paper plates (pencil drawings) sit straight on the sheet; the caption stays crisp. */
 .photo-paper img { width: auto; height: auto; max-width: 100%; max-height: calc(100svh - 230px); margin-inline: auto; }
-
-/* Photographs are mounted prints in the file; in the darkroom their black ground dissolves into the page. */
-.photo-print { padding: 10px 6px 0; }
-.photo-print .print {
-  position: relative; display: block; overflow: hidden; border-radius: 2px; transform: rotate(-1.2deg);
-  box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 26px 50px -26px rgba(40,30,10,.5);
-}
-.photo-print .print img { display: block; width: 100%; height: auto; }
-.photo-print .fgrain { -webkit-mask-image: none; mask-image: none; background-image: url("img/grain-light.png"); }
-.photo-print .flash { inset: 0; }
-:root[data-theme="dark"] .photo-print .print { box-shadow: none; transform: none;
-  -webkit-mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-print .print { box-shadow: none; transform: none;
-  -webkit-mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); } }
 
 /* Camera flash: a specimen being photographed for the file. Softer and warmer in the darkroom. */
 .photo .flash { position: absolute; inset: -20px; z-index: 3; pointer-events: none; opacity: 0;
