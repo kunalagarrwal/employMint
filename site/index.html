@@ -26,6 +26,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script>document.documentElement.classList.add("js");</script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer
+          integrity="sha384-eD5ubmuCcvTdCADWuSchJYE7wcj2nzNr0itbrh6w/KJyBiltSZ8w3VFRBSWu5YQ8" crossorigin="anonymous"></script>
   <script src="main.js" defer></script>
   <script type="application/ld+json">
   {
@@ -46,6 +48,8 @@
   </script>
 </head>
 <body>
+  <div class="tint" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="nav">
@@ -103,7 +107,7 @@
       </div>
     </section>
 
-    <section class="demo" id="demo" aria-labelledby="demo-title">
+    <section class="demo" id="demo" aria-labelledby="demo-title" data-tint>
       <div class="wrap">
         <h2 id="demo-title" class="section-title reveal">See it work</h2>
         <div class="video-frame reveal">
@@ -204,7 +208,7 @@ Created profile/ from the sample applicant.
       </div>
     </section>
 
-    <section class="get" id="get" aria-labelledby="get-title">
+    <section class="get" id="get" aria-labelledby="get-title" data-tint>
       <div class="wrap get-grid">
         <div class="reveal">
           <h2 id="get-title" class="section-title">Get employMint</h2>

@@ -1,34 +1,136 @@
-// employMint site: scroll reveals, the self-filling form, the pinned steps, and the copy button.
+// employMint site: smooth scrolling, scroll-linked motion, the self-filling form, and the copy button.
+// Every scroll effect is a pure function of scroll position, computed once per frame, so motion runs
+// forwards and backwards with the page instead of firing at thresholds. Only opacity and transform change.
 (() => {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const desktop = window.matchMedia("(min-width: 881px)");
+  const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
-  // Nav gets a hairline once the page scrolls.
-  const nav = document.querySelector(".nav");
-  const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 8);
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
-
-  // Sections fade up as they arrive; siblings arrive a beat apart.
-  const reveals = [...document.querySelectorAll(".reveal")];
-  if (reduce || !("IntersectionObserver" in window)) {
-    reveals.forEach((el) => el.classList.add("in"));
-  } else {
-    reveals.forEach((el) => {
-      const siblings = [...el.parentElement.children].filter((c) => c.classList.contains("reveal"));
-      el.style.setProperty("--d", `${Math.min(siblings.indexOf(el), 4) * 90}ms`);
-    });
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add("in");
-          io.unobserve(e.target);
-        }
-      });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
-    reveals.forEach((el) => io.observe(el));
+  // ---------- smooth, inertial scrolling (wheel and trackpad; touch keeps native scrolling) ----------
+  let lenis = null;
+  if (!reduce && window.Lenis) {
+    lenis = new window.Lenis({ lerp: 0.085, wheelMultiplier: 0.95 });
+    const raf = (time) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
   }
 
-  // The form fills itself in, the pointer heads for Submit, and stops.
+  // In-page links glide to their section and keep focus where keyboard users expect it.
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href");
+      const target = id.length > 1 && document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      if (lenis) lenis.scrollTo(target, { offset: -72, duration: 1.3 });
+      else target.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+      history.replaceState(null, "", id);
+      if (target.tabIndex >= 0 || target.id === "main") target.focus({ preventScroll: true });
+    });
+  });
+
+  // ---------- scroll-linked scene ----------
+  const nav = document.querySelector(".nav");
+  const heroCopy = document.querySelector(".hero-copy");
+  const heroSheet = document.querySelector(".form-demo .sheet");
+  const tint = document.querySelector(".tint");
+  const tinted = [...document.querySelectorAll("[data-tint]")];
+  const stepsList = document.querySelector(".steps");
+  const steps = [...document.querySelectorAll(".step")];
+  const panels = [...document.querySelectorAll(".panel")];
+  const howGrid = document.querySelector(".how-grid");
+  const reveals = [...document.querySelectorAll(".reveal")].map((el) => {
+    const siblings = [...el.parentElement.children].filter((c) => c.classList.contains("reveal"));
+    return { el, lag: Math.min(siblings.indexOf(el), 3) * 0.08 }; // columns in a row arrive a beat apart
+  });
+
+  // Resting positions, measured once (and again when layout changes), never per frame: each frame then
+  // only writes styles, with no layout reads, and transforms can't feed back into their own measurement.
+  const docTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return y; };
+  let geo = null;
+  const measure = () => {
+    geo = {
+      reveals: reveals.map((r) => docTop(r.el)),
+      tinted: tinted.map((s) => ({ top: docTop(s), bottom: docTop(s) + s.offsetHeight })),
+      how: howGrid ? { top: docTop(howGrid), height: howGrid.offsetHeight } : null,
+      panels: panels.map((pn) => docTop(pn) + pn.offsetHeight / 2),
+    };
+  };
+
+  const frame = () => {
+    queued = false;
+    const h = window.innerHeight;
+    const y = window.scrollY;
+    nav.classList.toggle("scrolled", y > 8);
+    if (reduce) return;
+    if (!geo) measure();
+
+    // Content rises into place over the lower ~40% of the screen, and settles back if you scroll up.
+    reveals.forEach((r, i) => {
+      const top = geo.reveals[i] - y;
+      let p = easeOut(clamp((h - top) / (h * 0.42) - r.lag));
+      if (r.el.contains(document.activeElement)) p = 1; // never hide what has keyboard focus
+      r.el.style.opacity = p.toFixed(3);
+      r.el.style.transform = `translate3d(0, ${((1 - p) * 56).toFixed(1)}px, 0)`;
+    });
+
+    // Leaving the hero: the words lift away a little faster than the page, the form sinks behind them.
+    const hp = clamp(y / (h * 0.9));
+    if (heroCopy) {
+      heroCopy.style.transform = `translate3d(0, ${(-hp * 90).toFixed(1)}px, 0)`;
+      heroCopy.style.opacity = (1 - hp * 0.8).toFixed(3);
+    }
+    if (heroSheet) heroSheet.style.transform = `translate3d(0, ${(hp * 46).toFixed(1)}px, 0) scale(${(1 - hp * 0.05).toFixed(4)})`;
+
+    // One fixed tint layer fades in under the darker sections, so backgrounds blend instead of banding.
+    let t = 0;
+    for (const s of geo.tinted) {
+      const enter = clamp((h * 0.85 - (s.top - y)) / (h * 0.55));
+      const leave = clamp((s.bottom - y - h * 0.15) / (h * 0.55));
+      t = Math.max(t, Math.min(enter, leave));
+    }
+    tint.style.opacity = t.toFixed(3);
+
+    // How it works: a line fills down the steps, and the panel nearest the middle comes into focus.
+    if (geo.how && desktop.matches) {
+      const g = geo.how;
+      stepsList.style.setProperty("--p", clamp((h * 0.5 - (g.top - y)) / Math.max(g.height - h * 0.4, 1)).toFixed(3));
+      let best = 0;
+      let bestD = Infinity;
+      panels.forEach((pn, i) => {
+        const d = Math.abs(geo.panels[i] - y - h / 2) / h;
+        if (d < bestD) { bestD = d; best = i; }
+        const k = clamp(d * 1.7);
+        pn.style.opacity = (1 - k * 0.72).toFixed(3);
+        pn.style.transform = `translate3d(0, 0, 0) scale(${(1 - k * 0.06).toFixed(4)})`;
+      });
+      steps.forEach((s, i) => s.classList.toggle("is-active", i === best));
+    } else {
+      panels.forEach((pn) => { pn.style.opacity = ""; pn.style.transform = ""; });
+    }
+  };
+  let queued = false;
+  const request = () => {
+    if (!queued) { queued = true; requestAnimationFrame(frame); }
+  };
+  if (lenis) lenis.on("scroll", request);
+  window.addEventListener("scroll", request, { passive: true });
+  const remeasure = () => { geo = null; request(); };
+  window.addEventListener("resize", remeasure);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remeasure);
+  if ("ResizeObserver" in window) new ResizeObserver(remeasure).observe(document.body);
+  document.addEventListener("focusin", request);
+  frame();
+
+  // Film grain is an endless animation: stop it while the tab is hidden.
+  document.addEventListener("visibilitychange", () => {
+    document.documentElement.classList.toggle("hidden-tab", document.visibilityState === "hidden");
+  });
+
+  // ---------- the form fills itself in, the pointer heads for Submit, and stops ----------
   const demo = document.querySelector(".form-demo");
   const showAll = () => {
     demo.querySelectorAll(".value").forEach((v) => v.classList.add("on"));
@@ -71,21 +173,7 @@
     }
   }
 
-  // How it works: the step beside the panel in view lights up.
-  const steps = [...document.querySelectorAll(".step")];
-  const panels = [...document.querySelectorAll(".panel")];
-  if (steps.length && "IntersectionObserver" in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const n = e.target.dataset.panel;
-        steps.forEach((s) => s.classList.toggle("is-active", s.dataset.step === n));
-      });
-    }, { rootMargin: "-45% 0px -45% 0px" });
-    panels.forEach((p) => io.observe(p));
-  }
-
-  // Copy the clone command.
+  // ---------- copy the clone command ----------
   const status = document.querySelector(".copy-status");
   document.querySelectorAll("[data-copy]").forEach((btn) => {
     btn.addEventListener("click", async () => {
