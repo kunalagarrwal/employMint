@@ -147,7 +147,7 @@ code { font-family: var(--mono); font-size: .9em; }
 /* ---------- nav ---------- */
 .nav { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--paper) 90%, transparent); backdrop-filter: blur(8px); }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-.brand { text-decoration: none; font: 500 13px var(--serif); letter-spacing: .42em; }
+.brand { text-decoration: none; font: 500 17px var(--serif); letter-spacing: .01em; }
 .nav nav { display: flex; align-items: center; gap: 26px; font-size: 14px; }
 .nav nav a:not(.btn) { text-decoration: none; color: var(--ink-2); letter-spacing: .04em; }
 .nav nav a:not(.btn):hover { color: var(--ink); }
@@ -168,6 +168,11 @@ code { font-family: var(--mono); font-size: .9em; }
   font: 500 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase;
 }
 .theme-toggle:hover { color: var(--ink); border-color: var(--ink-2); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-new(root) { z-index: 9999; }
+.theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
+  transition: background-color .5s ease, color .5s ease, border-color .5s ease, fill .5s ease, stroke .5s ease, opacity .5s ease !important;
+}
 .theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
 .theme-toggle .moon { display: none; }
 :root[data-theme="dark"] .theme-toggle .sun { display: none; }
@@ -178,7 +183,7 @@ code { font-family: var(--mono); font-size: .9em; }
 }
 @media (max-width: 520px) {
   .theme-toggle .tt-label { display: none; } .theme-toggle { padding: 0 8px; }
-  .nav nav { gap: 10px; } .brand { letter-spacing: .3em; font-size: 12px; } .btn-small { padding: 8px 13px; }
+  .nav nav { gap: 10px; } .brand { font-size: 16px; } .btn-small { padding: 8px 13px; }
   .schedule table { table-layout: fixed; font-size: 13px; }
   .schedule th, .schedule td { padding: 8px 7px; overflow-wrap: anywhere; }
   .schedule td:last-child { font-size: 14px; }
@@ -191,8 +196,7 @@ code { font-family: var(--mono); font-size: .9em; }
   min-height: calc(100svh - 72px); display: flex; flex-direction: column; justify-content: center;
   scroll-snap-align: start; scroll-snap-stop: always; }
 .footer { scroll-snap-align: end; }
-/* With a mouse or trackpad, main.js pages one plate per gesture, so the browser's own snapping steps aside. */
-html.paged { scroll-snap-type: none; scroll-behavior: auto; }
+
 .plate-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(32px, 6vw, 96px); align-items: center; }
 .plate-grid-flip { grid-template-columns: 1.15fr .85fr; }
 .plate-grid > * { min-width: 0; }
@@ -200,7 +204,7 @@ html.paged { scroll-snap-type: none; scroll-behavior: auto; }
 .plate-hero .plate-grid { grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); gap: clamp(24px, 5vw, 80px); }
 .plate-hero { padding-block: clamp(12px, 3vh, 40px); }
 .rule { width: 56px; height: 2px; background: var(--gold); }
-.specimen { font: 500 clamp(15px, min(1.9vw, 2.9vh), 26px) var(--serif); letter-spacing: .42em; margin-top: clamp(10px, 2vh, 22px); }
+.specimen { font: 500 clamp(18px, min(2.3vw, 3.4vh), 30px) var(--serif); letter-spacing: .02em; margin-top: clamp(10px, 2vh, 22px); }
 .latin { font: italic 400 18px var(--serif); color: var(--ink-2); margin-top: 4px; }
 h1 { margin-top: clamp(14px, 3.4vh, 40px); font-size: clamp(30px, min(4.6vw, 7.4vh), 62px); line-height: 1.04; letter-spacing: -0.01em; text-wrap: balance; }
 h1 em { color: var(--mint); }
@@ -327,9 +331,43 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .drawing.photo .wash, .drawing.photo .fgrain { bottom: 40px; }
 .hidden-tab .photo .fgrain { animation-play-state: paused; }
 /* Paper drawings would glare on a dark page: show them as chalk on dark paper instead. */
+/* Dark mode for paper plates and prints */
+:root[data-theme="dark"] .photo-paper img { filter: invert(.94) hue-rotate(180deg) brightness(.72) contrast(1.9) sepia(.15); mix-blend-mode: lighten; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-paper img { filter: invert(.94) hue-rotate(180deg) brightness(.72) contrast(1.9) sepia(.15); mix-blend-mode: lighten; } }
+:root[data-theme="dark"] .photo-print .print { box-shadow: none; transform: scale(calc(1.04 - var(--clear) * .04)); overflow: visible;
+  -webkit-mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-print .print { box-shadow: none; transform: scale(calc(1.04 - var(--clear) * .04)); overflow: visible;
+  -webkit-mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 52% 54% at 50% 50%, #000 62%, transparent 100%); } }
+:root[data-theme="dark"] .photo-paper .fgrain { opacity: calc(.06 + (1 - var(--clear)) * .3); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-paper .fgrain { opacity: calc(.06 + (1 - var(--clear)) * .3); } }
 /* Dark mode: chalk on dark paper. Lighten keeps only the light lines; the drawing's dark paper disappears into the page. */
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; } }
 :root[data-theme="dark"] .photo-hero img { filter: invert(.92) hue-rotate(180deg) brightness(.6) contrast(1.2) sepia(.15); mix-blend-mode: lighten; }
+
+/* Paper plates (pencil drawings) blend into the page like the specimen; the caption stays crisp. */
+.photo-paper { --r: calc(14% + var(--clear) * 70%); overflow: clip; isolation: auto;
+  --m: radial-gradient(ellipse 50% 50% at 50% 47%, #000 var(--r), transparent calc(var(--r) + 22%)); }
+.photo-paper img {
+  display: block; width: auto; max-width: 100%; max-height: calc(100svh - 230px); margin-inline: auto;
+  mix-blend-mode: multiply; filter: brightness(1.12) contrast(1.18) sepia(.08);
+  opacity: calc(.22 + var(--clear) * .78); transform: scale(calc(1.05 - var(--clear) * .05));
+  -webkit-mask-image: var(--m); mask-image: var(--m);
+}
+.photo-paper .wash { display: none; }
+/* the grain sits only where the drawing is, so there is no box around it */
+.photo-paper .fgrain { inset: 0 0 40px; -webkit-mask-image: var(--m); mask-image: var(--m); }
+/* Photographs are shown as mounted prints in the file; in the darkroom their black ground dissolves into the page. */
+.photo-print { margin: 0; padding: 10px 6px 0; }
+/* The print, its grain and its flash tilt and clip together, so nothing pokes out as a box. */
+.photo-print .print {
+  position: relative; display: block; overflow: hidden; border-radius: 2px;
+  transform: rotate(-1.2deg) scale(calc(1.04 - var(--clear) * .04));
+  box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 26px 50px -26px rgba(40,30,10,.5);
+  opacity: calc(.3 + var(--clear) * .7);
+}
+.photo-print .print img { display: block; width: 100%; height: auto; }
+.photo-print .fgrain { inset: -40px; mix-blend-mode: screen; }
+.photo-print .flash { inset: 0; }
 
 /* ---------- field recording (video placeholder) ---------- */
 .film { position: relative; max-width: 940px; aspect-ratio: 16 / 9; border: 1px solid var(--line);
@@ -378,7 +416,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 
 .footer { padding: 28px 0 44px; border-top: 1px solid var(--line); font-size: 14px; }
 .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand-small { font: 500 12px var(--serif); letter-spacing: .42em; }
+.brand-small { font: 500 15px var(--serif); letter-spacing: .01em; }
 
 /* ---------- scroll-linked text (main.js sets these every frame) ---------- */
 .js .reveal { opacity: 0; transform: translate3d(0, 40px, 0); will-change: transform, opacity; }

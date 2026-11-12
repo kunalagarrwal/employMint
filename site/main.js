@@ -1,4 +1,4 @@
-// employMint drawing set: plates that snap one per scroll, images that come out of a washed, grainy haze as
+// employMint specimen file: plates that snap one per scroll (native scroll snapping), images that come out of a washed, grainy haze as
 // they settle, a title block that follows the sheet you're on, and the copy button. Every effect is a pure
 // function of scroll position (or, for the first plate, of time since load).
 (() => {
@@ -103,64 +103,6 @@
   if ("ResizeObserver" in window) new ResizeObserver(remeasure).observe(document.body);
   frame();
 
-  // ---------- one gesture, one plate (wheel, trackpad and keys on desktop; phones keep native snapping) ----------
-  // Each separate wheel gesture moves exactly one stop; the rest of that gesture (trackpad momentum) is ignored,
-  // so you can't fly past a plate. A plate taller than the screen gets extra stops so none of it is skipped.
-  const fine = window.matchMedia("(pointer: fine) and (min-width: 901px)");
-  if (fine.matches) {
-    document.documentElement.classList.add("paged");
-    const navH = () => nav.offsetHeight;
-    const stops = () => {
-      const h = window.innerHeight, out = [];
-      plates.forEach((pl) => {
-        const top = Math.max(0, docTop(pl) - navH());
-        out.push(top);
-        for (let s = top + h * 0.8; s + h < top + pl.offsetHeight + navH(); s += h * 0.8) out.push(s);
-      });
-      out.push(document.documentElement.scrollHeight - h); // the footer
-      return [...new Set(out.map(Math.round))].sort((a, b) => a - b);
-    };
-    let animating = false, lastWheel = 0, gestureUsed = false;
-    const go = (to) => {
-      const from = window.scrollY, dist = to - from;
-      if (Math.abs(dist) < 2) return;
-      if (reduce) { window.scrollTo(0, to); return; }
-      animating = true;
-      const t0 = performance.now(), dur = 800;
-      const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-      const step = (now) => {
-        const k = clamp((now - t0) / dur);
-        window.scrollTo(0, from + dist * ease(k));
-        if (k < 1) requestAnimationFrame(step); else animating = false;
-      };
-      requestAnimationFrame(step);
-    };
-    const move = (dir) => {
-      const y = window.scrollY, all = stops();
-      const to = dir > 0 ? all.find((s) => s > y + 4) : [...all].reverse().find((s) => s < y - 4);
-      if (to !== undefined) go(to);
-    };
-    window.addEventListener("wheel", (e) => {
-      if (e.ctrlKey || Math.abs(e.deltaY) < Math.abs(e.deltaX)) return; // pinch-zoom and sideways scrolls stay native
-      e.preventDefault();
-      const now = performance.now();
-      if (now - lastWheel > 220) gestureUsed = false; // a pause means a new gesture
-      lastWheel = now;
-      if (animating || gestureUsed || Math.abs(e.deltaY) < 3) return;
-      gestureUsed = true;
-      move(Math.sign(e.deltaY));
-    }, { passive: false });
-    window.addEventListener("keydown", (e) => {
-      const el = document.activeElement;
-      if (e.altKey || e.ctrlKey || e.metaKey || (el && /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(el.tagName))) return;
-      const down = ["ArrowDown", "PageDown"].includes(e.key) || (e.key === " " && !e.shiftKey);
-      const up = ["ArrowUp", "PageUp"].includes(e.key) || (e.key === " " && e.shiftKey);
-      if (!down && !up) return;
-      e.preventDefault();
-      if (!animating) move(down ? 1 : -1);
-    });
-  }
-
   // ---------- light / dark toggle ----------
   // The page follows the system until you choose; your choice is remembered on this device.
   const root = document.documentElement;
@@ -175,9 +117,27 @@
   if (toggle) {
     toggle.addEventListener("click", () => {
       const next = isDark() ? "light" : "dark";
-      root.dataset.theme = next;
-      try { localStorage.setItem("employmint-theme", next); } catch (e) { /* private mode: still switches */ }
-      syncToggle();
+      const apply = () => {
+        root.dataset.theme = next;
+        try { localStorage.setItem("employmint-theme", next); } catch (e) { /* private mode: still switches */ }
+        syncToggle();
+      };
+      if (reduce) { apply(); return; }
+      if (document.startViewTransition) {
+        // The new theme spreads out from the switch in a growing circle, like a light coming on.
+        const b = toggle.getBoundingClientRect();
+        const x = b.left + b.width / 2, y = b.top + b.height / 2;
+        const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+        document.startViewTransition(apply).ready.then(() => {
+          root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+                       { duration: 750, easing: "cubic-bezier(.65, 0, .35, 1)", pseudoElement: "::view-transition-new(root)" });
+        }).catch(() => {});
+      } else {
+        // No View Transitions: colours fade across instead of snapping.
+        root.classList.add("theme-fade");
+        apply();
+        setTimeout(() => root.classList.remove("theme-fade"), 550);
+      }
     });
   }
   systemDark.addEventListener("change", syncToggle);
