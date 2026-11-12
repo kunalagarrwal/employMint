@@ -130,12 +130,15 @@
           <h2 id="demo-title">See it work</h2>
         </div>
         <div class="film reveal">
-          <div class="film-inner">
-            <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-            <p>The demo video is on its way.</p>
-            <p class="muted">Two minutes, start to finish: set up, today's batch, a filled form, and you clicking Submit.</p>
-          </div>
-          <span class="film-dim film-dim-w" aria-hidden="true">16 : 9</span>
+          <video controls playsinline preload="metadata" poster="media/specimen-em-01.jpg" width="1280" height="720"
+                 aria-describedby="film-desc">
+            <source src="media/specimen-em-01.mp4" type="video/mp4">
+          </video>
+          <p id="film-desc" class="sr-only">A 48-second film with narration. In a secret lab lit by red darkroom light, a vine grows
+            overnight in a sealed chamber, prints develop and hang to dry, and a laptop fills in a form. The vine reaches a glowing
+            button and stops short. Narration: it read five thousand postings; every leaf is written from what you gave it, nothing
+            invented; it fills in the form; then it stops, because the last step is reserved for you.</p>
+          <span class="film-dim film-dim-w" aria-hidden="true">Specimen EM-01 · 0:48</span>
         </div>
       </div>
     </section>

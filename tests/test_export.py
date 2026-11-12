@@ -41,6 +41,14 @@ def test_site_images_allowed_other_binaries_blocked(tmp_path):
     assert found == ["data.sqlite: binary file (not allowed in the public copy)"]
 
 
+def test_site_video_allowed_but_not_outside_site(tmp_path):
+    (tmp_path / "site" / "media").mkdir(parents=True)
+    (tmp_path / "site" / "media" / "film.mp4").write_bytes(b"\x00\x00\x00\x18ftypmp42\xff\xfe")
+    (tmp_path / "clip.mp4").write_bytes(b"\x00\x00\x00\x18ftypmp42\xff\xfe")
+    found = X.leaks(tmp_path, [])
+    assert found == ["clip.mp4: binary file (not allowed in the public copy)"]
+
+
 def test_project_urls_are_allowed_but_the_handle_elsewhere_is_not(tmp_path):
     (tmp_path / "ok.html").write_text('<a href="https://github.com/someone/employMint">x</a> '
                                       'https://someone.github.io/employMint/')

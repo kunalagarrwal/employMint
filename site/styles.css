@@ -334,17 +334,13 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .confidential span { font: 600 18px var(--mono); letter-spacing: .3em; text-transform: uppercase; }
 .confidential small { font: 500 9px var(--mono); letter-spacing: .18em; text-transform: uppercase; }
 
-/* ---------- field recording (video placeholder) ---------- */
+/* ---------- field recording: the film ---------- */
 .film { position: relative; max-width: 940px; aspect-ratio: 16 / 9; border: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper-2) 60%, transparent); display: grid; place-items: center; }
 .film::before, .film::after { content: ""; position: absolute; width: 18px; height: 18px; border: 0 solid var(--graphite); }
 .film::before { top: -7px; left: -7px; border-top-width: 1px; border-left-width: 1px; }
 .film::after { bottom: -7px; right: -7px; border-bottom-width: 1px; border-right-width: 1px; }
-.film-inner { text-align: center; padding: 24px; display: grid; justify-items: center; gap: 8px; }
-.film-inner p { font: 400 clamp(20px, 2.4vw, 26px) var(--serif); }
-.film-inner p.muted { font: 400 15px var(--sans); max-width: 30em; }
-.play { width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--graphite); display: grid; place-items: center; margin-bottom: 8px; }
-.play svg { width: 22px; height: 22px; fill: var(--graphite); margin-left: 3px; }
+.film video { width: 100%; height: 100%; display: block; background: #0b0a09; object-fit: cover; }
 .film-dim { position: absolute; right: 0; bottom: -28px; font: 500 10.5px var(--sans); letter-spacing: .2em; color: var(--muted); }
 
 /* ---------- schedule (download) ---------- */

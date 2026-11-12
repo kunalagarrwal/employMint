@@ -26,7 +26,7 @@ ALLOW = ["src", "tests", "docs", "examples", "site", ".github", ".claude/skills"
          "pytest.ini", ".gitignore", ".gitattributes", "LICENSE"]
 SKIP_PARTS = {"__pycache__", ".pytest_cache"}
 SKIP_SUFFIXES = {".pyc"}
-SITE_IMAGES = {".png", ".jpg", ".webp"}  # the only binary files allowed, and only under site/
+SITE_MEDIA = {".png", ".jpg", ".webp", ".mp4"}  # the only binary files allowed, and only under site/
 # Always forbidden, whatever the profile says: absolute home-folder paths.
 FORBIDDEN_STATIC = ["/" + "Users/", "/" + "home/"]  # split so this file doesn't match itself
 
@@ -127,8 +127,8 @@ def leaks(dest, forbidden, allowed=()):
         if not f.is_file() or ".git" in f.relative_to(dest).parts:
             continue
         rel = str(f.relative_to(dest))
-        if f.suffix in SITE_IMAGES and f.relative_to(dest).parts[0] == "site":
-            text = ""  # website images: only the file name is checked
+        if f.suffix in SITE_MEDIA and f.relative_to(dest).parts[0] == "site":
+            text = ""  # website images and the film: only the file name is checked
         else:
             try:
                 text = f.read_text(encoding="utf-8")
