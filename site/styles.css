@@ -24,6 +24,7 @@
   --ease: cubic-bezier(.2, .7, .2, 1);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --grain-opacity: .09;
+  --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2.2 -.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -48,6 +49,7 @@
     --clay-soft: #3b261c;
     --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     --grain-opacity: .05;
+    --film: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
 
@@ -59,7 +61,7 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: clip; }
 
-html { scroll-behavior: smooth; scroll-padding-top: 80px; -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; -webkit-text-size-adjust: 100%; scroll-snap-type: y mandatory; }
 body {
   margin: 0;
   background: var(--paper);
@@ -135,13 +137,18 @@ code { font-family: var(--mono); font-size: .9em; }
 
 /* ---------- plates ---------- */
 /* Each plate exposes four 0-1 values that the drawing reads. Without JS (or with reduced motion) they stay 1: fully drawn. */
-.plate { --c: 1; --inkp: 1; --wash: 1; --lab: 1; position: relative; padding: clamp(72px, 13vh, 150px) 0; }
+/* One plate per screen, and one plate per scroll: each snaps into place and can't be skipped past. */
+.plate { --c: 1; --inkp: 1; --wash: 1; --lab: 1; --clear: 1; position: relative; padding: clamp(28px, 5vh, 64px) 0;
+  min-height: calc(100svh - 72px); display: flex; flex-direction: column; justify-content: center;
+  scroll-snap-align: start; scroll-snap-stop: always; }
+.footer { scroll-snap-align: end; }
+/* With a mouse or trackpad, main.js pages one plate per gesture, so the browser's own snapping steps aside. */
+html.paged { scroll-snap-type: none; scroll-behavior: auto; }
 .plate-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: clamp(32px, 6vw, 96px); align-items: center; }
 .plate-grid-flip { grid-template-columns: 1.15fr .85fr; }
 .plate-grid > * { min-width: 0; }
 
-.plate-hero { padding-top: clamp(40px, 7vh, 80px); }
-.plate-hero .plate-grid { grid-template-columns: 1fr 1fr; }
+.plate-hero .plate-grid { grid-template-columns: 1.1fr .9fr; }
 .rule { width: 56px; height: 2px; background: var(--gold); }
 .specimen { font: 500 clamp(20px, 2.2vw, 28px) var(--serif); letter-spacing: .42em; margin-top: 22px; }
 .latin { font: italic 400 18px var(--serif); color: var(--ink-2); margin-top: 4px; }
@@ -173,7 +180,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 /* ---------- drawings ---------- */
 .drawing { margin: 0; }
 .drawing svg { width: 100%; height: auto; overflow: visible; }
-.drawing-tall svg { max-height: 78vh; margin-inline: auto; }
+.drawing-tall svg { max-height: calc(100svh - 220px); margin-inline: auto; }
 .caption { margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--line); text-align: right;
   font: 500 10.5px var(--sans); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
 
@@ -217,6 +224,23 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 .t .t-mono { font: 500 13px var(--mono); letter-spacing: 0; }
 .t .t-head { font: 600 12px var(--sans); letter-spacing: .02em; }
 .clay-text { fill: var(--clay-ink) !important; }
+
+/* ---------- the reveal: each image starts washed out under heavy grain and clears as it settles ---------- */
+.photo { position: relative; margin: 0; isolation: isolate; }
+.photo-hero { justify-self: center; width: min(100%, calc((100svh - 150px) * 1087 / 1447)); overflow: hidden; }
+.photo-hero img { width: 100%; height: auto; display: block; transform: scale(calc(1.05 - var(--clear) * .05)); will-change: transform; }
+.photo .wash { position: absolute; inset: 0; background: var(--paper); opacity: calc((1 - var(--clear)) * .7); pointer-events: none; z-index: 1; }
+.photo .fgrain {
+  position: absolute; inset: -40px; z-index: 2; pointer-events: none;
+  background-image: var(--film); background-size: 160px 160px;
+  opacity: calc(.22 + (1 - var(--clear)) * .5);
+  animation: grain .45s steps(4) infinite; will-change: transform;
+}
+.drawing.photo { overflow: hidden; }
+.drawing.photo .wash, .drawing.photo .fgrain { bottom: 40px; }
+.hidden-tab .photo .fgrain { animation-play-state: paused; }
+/* Paper drawings would glare on a dark page: show them as chalk on dark paper instead. */
+@media (prefers-color-scheme: dark) { .photo-hero img { filter: invert(.9) hue-rotate(180deg) sepia(.12); } }
 
 /* ---------- field recording (video placeholder) ---------- */
 .film { position: relative; max-width: 940px; aspect-ratio: 16 / 9; border: 1px solid var(--line);
@@ -281,6 +305,9 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
   .frame { inset: 8px; }
   .plate-grid, .plate-grid-flip, .plate-hero .plate-grid, .schedule { grid-template-columns: 1fr; }
   .plate-grid-flip .drawing { order: 2; }
+  html { scroll-snap-type: y proximity; }
+  .plate { min-height: 0; scroll-snap-stop: normal; }
+  .photo-hero { width: min(100%, 420px); }
   .nav nav a:not(.btn) { display: none; }
   .next { grid-template-columns: 1fr; }
   .drawing-tall svg { max-height: none; }
@@ -291,6 +318,6 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; }
-  .grain { animation: none; }
+  .grain, .photo .fgrain { animation: none; }
   .btn, .stamp { transition: none; }
 }
