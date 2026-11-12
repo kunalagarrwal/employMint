@@ -127,11 +127,25 @@ code { font-family: var(--mono); font-size: .9em; }
 
 /* ---------- nav ---------- */
 .nav { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--paper) 96%, transparent); }
-.nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-.brand { text-decoration: none; font: 500 17px var(--serif); letter-spacing: .01em; }
-.nav nav { display: flex; align-items: center; gap: 26px; font-size: 14px; }
-.nav nav a:not(.btn) { text-decoration: none; color: var(--ink-2); letter-spacing: .04em; }
-.nav nav a:not(.btn):hover { color: var(--ink); }
+.nav-inner { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; height: 72px;
+  padding-inline: clamp(20px, 5.5vw, 104px); }
+.nav nav { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.nav-left { justify-self: start; }
+.nav-right { justify-self: end; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--paper-2); color: var(--ink-2); text-decoration: none;
+  font: 500 14px var(--sans); letter-spacing: .01em; transition: color .2s, border-color .2s, background .2s;
+}
+.pill:hover { color: var(--ink); border-color: var(--ink-2); }
+
+/* The wordmark: heavy, wide-set capitals-weight sans in camelCase; the dot of the i is a mint leaf. */
+.brand { justify-self: center; text-decoration: none; color: var(--ink); }
+.wm { display: inline-block; font: 700 25px/1 var(--sans); letter-spacing: .045em; color: var(--ink); white-space: nowrap; }
+.wm-i { position: relative; display: inline-block; }
+.wm-leaf { position: absolute; left: 50%; top: -.27em; width: .36em; height: .58em; transform: translateX(-42%) rotate(30deg);
+  fill: var(--mint); overflow: visible; }
+.wm-leaf .vein { fill: none; stroke: var(--paper); stroke-width: .9; stroke-linecap: round; opacity: .7; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: var(--paper);
@@ -143,14 +157,17 @@ code { font-family: var(--mono); font-size: .9em; }
 .btn-quiet:hover { background: var(--paper-2); color: var(--ink); }
 .btn-small { padding: 8px 16px; font-size: 13px; }
 /* Light / dark toggle: a darkroom switch */
-.theme-toggle {
-  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 8px; border-radius: 999px;
-  border: 1px solid var(--line); background: transparent; color: var(--ink-2); cursor: pointer;
-  font: 500 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase;
-}
-.theme-toggle:hover { color: var(--ink); border-color: var(--ink-2); }
+.theme-toggle { padding: 0 14px 0 10px; cursor: pointer; }
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 ::view-transition-new(root) { z-index: 9999; }
+/* Ink switch: the incoming dark page (or the outgoing dark page, going light) is masked by an ink stain that main.js
+   grows from the switch or draws back into it. */
+.ink-in::view-transition-new(root), .ink-out::view-transition-old(root) {
+  -webkit-mask-image: url("img/ink-blot.png"); mask-image: url("img/ink-blot.png");
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; z-index: 9999; }
+.ink-in::view-transition-new(root) { -webkit-mask-size: 0 0; mask-size: 0 0; }
+.ink-out::view-transition-old(root) { -webkit-mask-size: 400vmax 400vmax; mask-size: 400vmax 400vmax; -webkit-mask-position: center; mask-position: center; }
+.ink-out::view-transition-new(root) { z-index: 1; }
 .theme-fade, .theme-fade *, .theme-fade *::before, .theme-fade *::after {
   transition: background-color .5s ease, color .5s ease, border-color .5s ease, fill .5s ease, stroke .5s ease, opacity .5s ease !important;
 }
@@ -164,7 +181,7 @@ code { font-family: var(--mono); font-size: .9em; }
 }
 @media (max-width: 520px) {
   .theme-toggle .tt-label { display: none; } .theme-toggle { padding: 0 8px; }
-  .nav nav { gap: 10px; } .brand { font-size: 16px; } .btn-small { padding: 8px 13px; }
+  .btn-small { padding: 8px 13px; }
   .schedule table { table-layout: fixed; font-size: 13px; }
   .schedule th, .schedule td { padding: 8px 7px; overflow-wrap: anywhere; }
   .schedule td:last-child { font-size: 14px; }
@@ -185,7 +202,8 @@ code { font-family: var(--mono); font-size: .9em; }
 .plate-hero .plate-grid { grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); gap: clamp(24px, 5vw, 80px); }
 .plate-hero { padding-block: clamp(12px, 3vh, 40px); }
 .rule { width: 56px; height: 2px; background: var(--gold); }
-.specimen { font: 500 clamp(18px, min(2.3vw, 3.4vh), 30px) var(--serif); letter-spacing: .02em; margin-top: clamp(10px, 2vh, 22px); }
+.specimen { margin-top: clamp(10px, 2vh, 22px); }
+.specimen .wm { font-size: clamp(22px, min(2.6vw, 3.8vh), 36px); }
 .latin { font: italic 400 18px var(--serif); color: var(--ink-2); margin-top: 4px; }
 h1 { margin-top: clamp(14px, 3.4vh, 40px); font-size: clamp(30px, min(4.6vw, 7.4vh), 62px); line-height: 1.04; letter-spacing: -0.01em; text-wrap: balance; }
 h1 em { color: var(--mint); }
@@ -377,7 +395,7 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
 
 .footer { padding: 28px 0 44px; border-top: 1px solid var(--line); font-size: 14px; }
 .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand-small { font: 500 15px var(--serif); letter-spacing: .01em; }
+.brand-small .wm { font-size: 17px; }
 
 /* ---------- text rises in when its plate arrives (main.js adds .on) ---------- */
 .js .reveal { opacity: 0; transform: translate3d(0, 32px, 0); transition: opacity .8s ease, transform 1s cubic-bezier(.2,.7,.2,1); }
@@ -397,6 +415,18 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
   .plate-grid-flip .drawing { order: 2; }
   .photo-hero { width: min(100%, calc((100svh - 170px) * 1087 / 1447)); }
 }
+/* Narrower screens: section pills go; the wordmark moves left. */
+@media (max-width: 1080px) {
+  .nav .nav-left { display: none; }
+  .nav-inner { grid-template-columns: auto 1fr; }
+  .brand { justify-self: start; }
+}
+@media (max-width: 560px) {
+  .pill-gh { display: none; }
+  .theme-toggle .tt-label { display: none; } .theme-toggle { padding: 0 9px; }
+  .wm { font-size: 21px; }
+  .nav-inner { gap: 8px; }
+}
 /* Phones and short laptop screens: snapping helps but never traps you inside a tall plate. */
 @media (max-width: 900px), (max-height: 760px) {
   html { scroll-snap-type: y proximity; }
@@ -407,7 +437,6 @@ h2 { font-size: clamp(36px, 4.4vw, 56px); line-height: 1.06; margin-top: 10px; }
   .plate-hero .plate-grid { grid-template-columns: 1fr; }
   .photo-hero { width: min(78vw, calc(46svh * 1087 / 1447)); }
   .confidential { right: 2%; top: auto; bottom: 30%; transform: rotate(7deg) scale(.75); }
-  .nav nav a:not(.btn) { display: none; }
   .next { grid-template-columns: 1fr; }
   .drawing-tall svg { max-height: none; }
   .spec div { grid-template-columns: 7.5em 1fr; }

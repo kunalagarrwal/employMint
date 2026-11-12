@@ -74,6 +74,12 @@
     if (toggle) toggle.setAttribute("aria-pressed", String(dark));
     document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", dark ? "#171613" : "#f2ede2"));
   };
+  // The ink stain is fetched once the page is idle, so the first switch already has it.
+  let inkReady = false;
+  if (toggle && !reduce && document.startViewTransition && CSS.supports("mask-size", "1px 1px")) {
+    const later = window.requestIdleCallback || ((f) => setTimeout(f, 1200));
+    later(() => { const im = new Image(); im.onload = () => { inkReady = true; }; im.src = "img/ink-blot.png"; });
+  }
   if (toggle) {
     toggle.addEventListener("click", () => {
       const next = isDark() ? "light" : "dark";
@@ -83,11 +89,31 @@
         syncToggle();
       };
       if (reduce) { apply(); return; }
-      if (document.startViewTransition) {
-        // The new theme spreads out from the switch in a growing circle, like a light coming on.
+      if (document.startViewTransition && inkReady) {
+        // Ink: going dark, a drop lands on the switch and soaks across the paper until the whole sheet is dark.
+        // Going light, the ink draws back out of the paper into the switch. The stain is an image used as a mask on
+        // the page snapshot (img/ink-blot.png), scaled from nothing to larger than the screen.
         const b = toggle.getBoundingClientRect();
         const x = b.left + b.width / 2, y = b.top + b.height / 2;
-        const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+        const reach = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+        const size = reach / 0.33; // the blot's solid core is about a third of its image: make the core cover the screen
+        const at = (s) => ({ maskSize: `${s}px ${s}px`, maskPosition: `${x - s / 2}px ${y - s / 2}px`,
+                             webkitMaskSize: `${s}px ${s}px`, webkitMaskPosition: `${x - s / 2}px ${y - s / 2}px` });
+        const soak = next === "dark";
+        root.classList.add(soak ? "ink-in" : "ink-out");
+        const vt = document.startViewTransition(apply);
+        vt.ready.then(() => {
+          root.animate(soak ? [at(0), at(size * 0.18), at(size)] : [at(size), at(size * 0.18), at(0)], {
+            duration: soak ? 1300 : 1100, fill: "both", pseudoElement: soak ? "::view-transition-new(root)" : "::view-transition-old(root)",
+            easing: soak ? "cubic-bezier(.4, 0, .2, 1)" : "cubic-bezier(.6, 0, .5, 1)",
+          });
+        }).catch(() => {});
+        vt.finished.finally(() => root.classList.remove("ink-in", "ink-out"));
+      } else if (document.startViewTransition) {
+        // Ink stain not loaded yet: a plain circle from the switch.
+        const b = toggle.getBoundingClientRect();
+        const x = b.left + b.width / 2, y = b.top + b.height / 2;
+        const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
         document.startViewTransition(apply).ready.then(() => {
           root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
                        { duration: 750, easing: "cubic-bezier(.65, 0, .35, 1)", pseudoElement: "::view-transition-new(root)" });
