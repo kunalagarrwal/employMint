@@ -47,3 +47,18 @@ def test_project_urls_are_allowed_but_the_handle_elsewhere_is_not(tmp_path):
     (tmp_path / "bad.md").write_text("Made by someone at https://github.com/someone")
     found = X.leaks(tmp_path, ["someone"], allowed=X.public_urls("someone"))
     assert found == ["bad.md: contains 'someone'"]
+
+
+def test_ordinary_dictionary_words_are_not_treated_as_personal():
+    found = X.drop_common_words({"Lamp", "bolts", "Zorbify", "Ada Lovelace", "ada@example.com"}, {"lamp", "bolts"})
+    assert found == {"Zorbify", "Ada Lovelace", "ada@example.com"}
+
+
+def test_identity_strings_are_never_skipped_even_if_they_are_dictionary_words():
+    profile = {"contact": {"name": "Ada Target"}, "education": [{"school": "Austin"}],
+               "experience": [{"id": "corp", "org": "Target"}],
+               "projects": [{"id": "lamp", "name": "Lamp"}, {"id": "zorbify", "name": "Zorbify"}]}
+    answers = {"values": {"last_name": "Target", "city": "Austin"}}
+    found = X.strings_from(profile, answers, {"target", "austin", "lamp"})
+    assert {"Ada Target", "Target", "Austin", "Zorbify", "zorbify", "corp"} <= found
+    assert "Lamp" not in found and "lamp" not in found

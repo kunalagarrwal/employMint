@@ -31,6 +31,45 @@ SITE_IMAGES = {".png", ".jpg", ".webp"}  # the only binary files allowed, and on
 FORBIDDEN_STATIC = ["/" + "Users/", "/" + "home/"]  # split so this file doesn't match itself
 
 
+def drop_common_words(strings, dictionary):
+    """Single ordinary words (a project called "Lamp") can't identify anyone and would match normal text;
+    multi-word names, handles, emails and invented words (e.g. "Zorbify") are kept."""
+    return {s for s in strings if not (s.isalpha() and s.lower() in dictionary)}
+
+
+def load_dictionary(path="/usr/share/dict/words"):
+    try:
+        return {w.strip().lower() for w in open(path, encoding="utf-8", errors="ignore")}
+    except OSError:
+        return set()  # no word list: keep every string (stricter, never looser)
+
+
+def strings_from(p, a, dictionary):
+    """Identifying strings from a profile and answers. Identity (name, contact, handles, school, employers,
+    city, address) is always kept; only project names and ids may be skipped as ordinary words."""
+    c = p.get("contact", {})
+    identity = {c.get("name"), c.get("email"), c.get("phone")}
+    for url in (c.get("linkedin"), c.get("github")):
+        identity.add((url or "").rstrip("/").rsplit("/", 1)[-1])  # the handle
+    for ed in p.get("education", []):
+        identity |= {ed.get("school"), ed.get("gpa")}
+    for e in p.get("experience", []):
+        identity |= {e.get("id"), e.get("org")}
+    for cert in p.get("certifications", []):
+        identity |= {cert.get("name"), cert.get("issuer")}
+    v = a.get("values", {})
+    identity |= {v.get(k) for k in ("full_name", "first_name", "last_name", "email", "phone", "address_line1",
+                                    "address_line2", "postal_code", "city", "location", "gpa")}
+    digits = re.sub(r"\D", "", c.get("phone") or "")
+    if len(digits) >= 7:
+        identity.add(f"{digits[-7:-4]}-{digits[-4:]}")
+    projects = set()
+    for x in p.get("projects", []):
+        projects |= {x.get("id"), (x.get("name") or "").split(" - ")[0], x.get("url")}
+    keep = lambda ss: {s.strip() for s in ss if isinstance(s, str) and len(s.strip()) >= 4}
+    return keep(identity) | drop_common_words(keep(projects), dictionary)
+
+
 def personal_strings():
     """Exact strings that identify the person whose profile/ is on this machine. Empty if there is none."""
     d = ROOT / "profile"
@@ -39,26 +78,7 @@ def personal_strings():
         a = json.loads((d / "answers.json").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return set()
-    c = p.get("contact", {})
-    out = {c.get("name"), c.get("email"), c.get("phone")}
-    for url in (c.get("linkedin"), c.get("github")):
-        out.add((url or "").rstrip("/").rsplit("/", 1)[-1])  # the handle
-    for ed in p.get("education", []):
-        out |= {ed.get("school"), ed.get("gpa")}
-    for e in p.get("experience", []):
-        out |= {e.get("id"), e.get("org")}
-    for x in p.get("projects", []):
-        out |= {x.get("id"), (x.get("name") or "").split(" - ")[0], x.get("url")}
-    for cert in p.get("certifications", []):
-        out |= {cert.get("name"), cert.get("issuer")}
-    v = a.get("values", {})
-    out |= {v.get(k) for k in ("full_name", "first_name", "last_name", "email", "phone", "address_line1",
-                               "address_line2", "postal_code", "city", "location", "gpa")}
-    digits = re.sub(r"\D", "", c.get("phone") or "")
-    if len(digits) >= 7:
-        out.add(f"{digits[-7:-4]}-{digits[-4:]}")
-    # Keep strings long enough to be identifying; drop empties and short words that match ordinary text.
-    return {s.strip() for s in out if isinstance(s, str) and len(s.strip()) >= 4}
+    return strings_from(p, a, load_dictionary())
 
 
 def prepare_dest(dest):

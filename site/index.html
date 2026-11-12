@@ -15,10 +15,10 @@
   <meta property="og:image" content="https://kunalagarrwal.github.io/employMint/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="employMint: Apply with AI. Submit yourself. An application form filled in, with Submit left for you.">
+  <meta property="og:image:alt" content="employMint drawn as a botanical plate: a mint plant whose leaves are resumes. Apply with AI. Submit yourself.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://kunalagarrwal.github.io/employMint/og.png">
-  <meta name="theme-color" content="#f5f0e6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f2ede2" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,19 +48,38 @@
   </script>
 </head>
 <body>
-  <div class="tint" aria-hidden="true"></div>
+  <!-- One mint leaf, drawn once and reused everywhere. It points along +x from its base at 0,0. -->
+  <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <g id="leaf">
+        <path d="M0 0 C10 -19 42 -22 64 0 C42 22 10 19 0 0 Z" pathLength="1" vector-effect="non-scaling-stroke"/>
+        <path d="M3 0 C20 -1 40 -1 60 0" pathLength="1" fill="none" vector-effect="non-scaling-stroke"/>
+        <path d="M15 -1 L23 -9 M15 1 L23 9 M29 -1 L38 -10 M29 1 L38 10 M43 -1 L50 -7 M43 1 L50 7" pathLength="1" fill="none" vector-effect="non-scaling-stroke"/>
+      </g>
+      <g id="leaf-outline">
+        <path d="M0 0 C10 -19 42 -22 64 0 C42 22 10 19 0 0 Z" pathLength="1" vector-effect="non-scaling-stroke"/>
+        <path d="M3 0 C20 -1 40 -1 60 0" pathLength="1" fill="none" vector-effect="non-scaling-stroke"/>
+      </g>
+    </defs>
+  </svg>
+
   <div class="grain" aria-hidden="true"></div>
+  <div class="frame" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+  <aside class="titleblock" aria-hidden="true">
+    <div class="tb-row tb-name">EMPLOYMINT</div>
+    <div class="tb-row"><span>Sheet</span><b><span data-sheet-no>01</span> / 07</b></div>
+    <div class="tb-row"><span>Plate</span><b data-sheet-name>Specimen</b></div>
+    <div class="tb-row"><span>Drawn by</span><b>You</b></div>
+  </aside>
+
   <a class="skip" href="#main">Skip to content</a>
 
   <header class="nav">
     <div class="wrap nav-inner">
-      <a class="brand" href="#top" aria-label="employMint home">
-        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14Z"/><path d="M5 19 13 11"/></svg>
-        <span>employMint</span>
-      </a>
+      <a class="brand" href="#top" aria-label="employMint home">EMPLOYMINT</a>
       <nav aria-label="Main">
-        <a href="#how">How it works</a>
-        <a href="#promises">Promises</a>
+        <a href="#leaf-plate">Plates</a>
         <a href="https://github.com/kunalagarrwal/employMint">GitHub</a>
         <a class="btn btn-small" href="#get">Download</a>
       </nav>
@@ -68,161 +87,348 @@
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="hero" id="top">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow hero-in">Free and open source. Runs on your computer.</p>
-          <h1 class="hero-in">Apply with AI.<br><em>Submit yourself.</em></h1>
-          <p class="lede hero-in">employMint is a free, open-source AI tool for internship applications. It finds roles that fit you, writes a truthful one-page resume for each, and fills in the application. Then it stops, so the last click is always yours.</p>
-          <div class="actions hero-in">
+
+    <!-- PLATE I: SPECIMEN -->
+    <section class="plate plate-hero" id="top" data-plate="01" data-name="Specimen" aria-labelledby="hero-title">
+      <div class="wrap plate-grid">
+        <div class="plate-text">
+          <p class="rule" aria-hidden="true"></p>
+          <p class="specimen">EMPLOYMINT</p>
+          <p class="latin"><em>Mentha applicatio</em> (Internship Variant)</p>
+          <h1 id="hero-title">Apply with AI.<br><em>Submit yourself.</em></h1>
+          <p class="lede">employMint is a free, open-source AI tool for internship applications. It finds roles that fit you, writes a truthful one-page resume for each, and fills in the application. Then it stops, so the last click is always yours.</p>
+          <div class="actions">
             <a class="btn" href="#get">Get started</a>
             <a class="btn btn-quiet" href="https://github.com/kunalagarrwal/employMint">View on GitHub</a>
           </div>
-          <p class="fineprint hero-in">Built for Claude Code. Also works with Codex and other AI assistants.</p>
+          <p class="fineprint">Built for Claude Code. Also works with Codex and other AI assistants.</p>
         </div>
 
-        <figure class="form-demo hero-in" aria-labelledby="demo-cap">
-          <figcaption id="demo-cap" class="sr-only">Example application for a Software Engineer Intern role at Acme Robotics. Name, email, resume, the visa answer and a short essay are filled in. The gender question is left for you. Submit is not clicked: you do that.</figcaption>
-          <div class="sheet" aria-hidden="true">
-            <div class="sheet-head">
-              <span class="sheet-site">Software Engineer Intern</span>
-              <span class="sheet-co">Acme Robotics</span>
-            </div>
-            <div class="field"><span class="label">Full name</span><span class="value" data-type>Alex Rivera</span></div>
-            <div class="field"><span class="label">Email</span><span class="value" data-type>alex.rivera@example.com</span></div>
-            <div class="field"><span class="label">Resume</span><span class="value file" data-pop><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1h5l3 3v11H4z"/><path d="M9 1v3h3"/></svg>Alex_Rivera_Resume.pdf</span></div>
-            <div class="field"><span class="label">Will you need visa sponsorship?</span><span class="value choice" data-pop>No</span></div>
-            <div class="field"><span class="label">Why Acme?</span><span class="value long" data-type>In Databases this fall I designed the schema for a room-booking app that 3 campus offices now use…</span></div>
-            <div class="field flagged"><span class="label">Gender</span><span class="value choice" data-pop>Left for you</span></div>
-            <div class="sheet-foot">
-              <span class="status" data-status>Filled 5 of 6 · 1 left for you</span>
-              <span class="submit-wrap">
-                <span class="submit">Submit application</span>
-                <span class="you-click">You click this.</span>
-              </span>
-            </div>
-            <svg class="pointer" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 2 16 10.5 10 11.6 13.4 18l-2.3 1.1-3.4-6.5L3 16.6Z"/></svg>
-          </div>
+        <figure class="drawing drawing-hero">
+          <svg viewBox="0 0 560 720" role="img" aria-labelledby="specimen-title specimen-desc">
+            <title id="specimen-title">Plate I, specimen</title>
+            <desc id="specimen-desc">A mint plant drawn as a botanical plate. It climbs a pole labelled your profile, grows from a pot labelled your laptop, and each leaf is a tailored resume.</desc>
+            <g class="k">
+              <path d="M40 60 H520 M40 698 H520 M140 40 V700 M420 40 V700 M280 30 V710" pathLength="1"/>
+              <path d="M50 300 A230 230 0 1 1 510 300 A230 230 0 1 1 50 300" pathLength="1"/>
+              <path d="M70 90 V600 M64 90 H76 M64 600 H76" pathLength="1"/>
+            </g>
+            <g class="kd"><path d="M60 330 H500 M60 470 H500"/></g>
+            <g class="i">
+              <path d="M272 72 V592 M288 72 V592 M272 72 H288" pathLength="1"/>
+              <path class="gold" d="M280 592 C230 562 330 522 280 492 C230 462 330 422 280 392 C230 362 330 322 280 292 C230 262 330 222 280 192 C240 167 320 132 282 100" pathLength="1"/>
+              <path d="M186 592 H374 M190 606 H370 M190 606 L206 690 H354 L370 606 M196 698 H364" pathLength="1"/>
+              <path d="M300 594 C340 604 360 622 372 652" pathLength="1"/>
+            </g>
+            <g class="w hatch" clip-path="url(#potclip)">
+              <clipPath id="potclip"><path d="M190 606 L206 690 H354 L370 606 Z"/></clipPath>
+              <path d="M180 700 L230 600 M194 700 L244 600 M208 700 L258 600 M222 700 L272 600 M236 700 L286 600 M250 700 L300 600"/>
+            </g>
+            <g class="lf">
+              <use href="#leaf" transform="translate(276 576) rotate(-160) scale(1.05)"/>
+              <use href="#leaf" transform="translate(284 546) rotate(-20) scale(1.1)"/>
+              <use href="#leaf" transform="translate(276 506) rotate(-150) scale(1.15)"/>
+              <use href="#leaf" transform="translate(284 470) rotate(-35) scale(1.2)"/>
+              <use href="#leaf" transform="translate(276 432) rotate(-145) scale(1.1)"/>
+              <use href="#leaf" transform="translate(284 400) rotate(-30) scale(1.15)"/>
+              <use href="#leaf" transform="translate(276 362) rotate(-140) scale(1.05)"/>
+              <use href="#leaf" transform="translate(284 326) rotate(-40) scale(1)"/>
+              <use href="#leaf" transform="translate(276 290) rotate(-135) scale(.95)"/>
+              <use href="#leaf" transform="translate(284 256) rotate(-45) scale(.9)"/>
+              <use href="#leaf" transform="translate(276 220) rotate(-130) scale(.85)"/>
+              <use href="#leaf" transform="translate(284 186) rotate(-50) scale(.8)"/>
+              <use href="#leaf" transform="translate(278 150) rotate(-120) scale(.7)"/>
+              <use href="#leaf" transform="translate(284 120) rotate(-60) scale(.62)"/>
+              <use href="#leaf" transform="translate(372 652) rotate(70) scale(.85)"/>
+            </g>
+            <g class="t">
+              <path d="M338 442 L430 418 H520" pathLength="1"/>
+              <circle cx="338" cy="442" r="2.5"/>
+              <text x="430" y="410">LEAF</text>
+              <text x="430" y="434" class="t-sub">a tailored resume</text>
+              <path d="M272 330 L160 300 H60" pathLength="1"/>
+              <circle cx="272" cy="330" r="2.5"/>
+              <text x="60" y="292">POLE</text>
+              <text x="60" y="316" class="t-sub">your profile</text>
+              <path d="M370 640 H520" pathLength="1"/>
+              <circle cx="370" cy="640" r="2.5"/>
+              <text x="440" y="632">POT</text>
+              <text x="440" y="656" class="t-sub">your laptop</text>
+              <text x="58" y="350" class="t-dim" transform="rotate(-90 58 350)">H · 520</text>
+            </g>
+          </svg>
+          <figcaption class="caption">Plate I · Specimen</figcaption>
         </figure>
       </div>
     </section>
 
-    <section class="demo" id="demo" aria-labelledby="demo-title" data-tint>
+    <!-- FIELD RECORDING: demo video placeholder -->
+    <section class="plate plate-film" id="demo" data-plate="02" data-name="Field recording" aria-labelledby="demo-title">
       <div class="wrap">
-        <h2 id="demo-title" class="section-title reveal">See it work</h2>
-        <div class="video-frame reveal">
-          <div class="video-placeholder">
+        <div class="plate-head reveal">
+          <p class="plate-no">Plate II</p>
+          <h2 id="demo-title">Field recording</h2>
+        </div>
+        <div class="film reveal">
+          <div class="film-inner">
             <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
             <p>The demo video is on its way.</p>
             <p class="muted">Two minutes, start to finish: set up, today's batch, a filled form, and you clicking Submit.</p>
           </div>
+          <span class="film-dim film-dim-w" aria-hidden="true">16 : 9</span>
         </div>
       </div>
     </section>
 
-    <section class="how" id="how" aria-labelledby="how-title">
-      <div class="wrap">
-        <h2 id="how-title" class="section-title reveal">How it works</h2>
-        <div class="how-grid">
-          <ol class="steps" role="list" aria-label="Steps">
-            <li class="step is-active" data-step="1">
-              <span class="step-num" aria-hidden="true">01</span>
-              <h3>Install once</h3>
-              <p>Download the folder and run one command. It checks Python and Chrome and sets up a starter profile.</p>
-            </li>
-            <li class="step" data-step="2">
-              <span class="step-num" aria-hidden="true">02</span>
-              <h3>Say "set me up"</h3>
-              <p>Hand your AI assistant your resume. It asks a few questions and turns your experience into facts it's allowed to use. Nothing more.</p>
-            </li>
-            <li class="step" data-step="3">
-              <span class="step-num" aria-hidden="true">03</span>
-              <h3>Run today's batch</h3>
-              <p>Each day it picks the best new roles, tailors a resume for each, and lines them up for you to approve or skip.</p>
-            </li>
+    <!-- PLATE III: LEAF DETAIL / never invents -->
+    <section class="plate" id="leaf-plate" data-plate="03" data-name="Leaf detail" aria-labelledby="leaf-title">
+      <div class="wrap plate-grid">
+        <div class="plate-text reveal">
+          <p class="plate-no">Plate III</p>
+          <h2 id="leaf-title">Leaf detail</h2>
+          <p class="plate-claim"><em>It never invents a fact.</em></p>
+          <p>Each resume is one leaf. Every line on it grows from a vein, and every vein runs back to a fact you gave it. A line with no vein, like a number it can't trace, is cut before the PDF is made.</p>
+          <dl class="spec">
+            <div><dt>Bullet</dt><dd>one line on the resume</dd></div>
+            <div><dt>Vein</dt><dd>the fact it cites</dd></div>
+            <div><dt>No vein</dt><dd>rejected by the checker</dd></div>
+          </dl>
+        </div>
+        <figure class="drawing">
+          <svg viewBox="0 0 560 420" role="img" aria-labelledby="leafd-title leafd-desc">
+            <title id="leafd-title">Plate III, leaf detail</title>
+            <desc id="leafd-desc">One large leaf drawn as a resume page. Each line of text is joined by a vein to a fact node on the stem. One line has no vein and is marked rejected.</desc>
+            <g class="k">
+              <path d="M30 210 H530 M280 40 V380" pathLength="1"/>
+              <path d="M130 210 A150 150 0 1 1 430 210 A150 150 0 1 1 130 210" pathLength="1"/>
+            </g>
+            <g class="kd"><path d="M40 40 H520 V380 H40 Z"/></g>
+            <g class="lf lf-big">
+              <use href="#leaf-outline" transform="translate(72 210) scale(6)"/>
+            </g>
+            <g class="i">
+              <path d="M188 168 H338 M188 188 H318 M188 232 H332 M188 252 H310" pathLength="1"/>
+              <path class="gold" d="M338 168 C360 170 372 190 378 209 M318 188 C340 190 352 200 360 209 M332 232 C356 230 384 222 396 211" pathLength="1"/>
+            </g>
+            <g class="w">
+              <circle cx="378" cy="210" r="4.5" class="node"/>
+              <circle cx="360" cy="210" r="4.5" class="node"/>
+              <circle cx="396" cy="210" r="4.5" class="node"/>
+              <circle cx="182" cy="168" r="2"/><circle cx="182" cy="188" r="2"/><circle cx="182" cy="232" r="2"/><circle cx="182" cy="252" r="2" class="node-clay"/>
+              <path class="x-clay" d="M318 246 L330 258 M330 246 L318 258"/>
+            </g>
+            <g class="t">
+              <path d="M188 160 L150 96 H50" pathLength="1"/>
+              <text x="50" y="88">BULLET</text><text x="50" y="112" class="t-sub">one line on the resume</text>
+              <path d="M352 182 L420 96 H530" pathLength="1"/>
+              <text x="420" y="88">VEIN</text><text x="420" y="112" class="t-sub">cites one fact</text>
+              <path d="M378 216 L430 316 H530" pathLength="1"/>
+              <text x="430" y="308">FACT</text><text x="430" y="332" class="t-sub">from your profile</text>
+              <path class="clay" d="M324 262 L250 336 H120" pathLength="1"/>
+              <text x="120" y="328" class="clay-text">NO VEIN</text><text x="120" y="352" class="t-sub clay-text">rejected, never printed</text>
+            </g>
+          </svg>
+          <figcaption class="caption">Plate III · Leaf detail · scale 6 : 1</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- PLATE IV: GROWTH PATTERN / how it works -->
+    <section class="plate" id="growth" data-plate="04" data-name="Growth pattern" aria-labelledby="growth-title">
+      <div class="wrap plate-grid plate-grid-flip">
+        <figure class="drawing drawing-tall">
+          <svg viewBox="0 0 440 640" role="img" aria-labelledby="grow-title grow-desc">
+            <title id="grow-title">Plate IV, growth pattern</title>
+            <desc id="grow-desc">A vine climbs a pole through four nodes, bottom to top: listings, tailor, review, and submit. The top node is outlined and reserved for you.</desc>
+            <g class="k">
+              <path d="M220 30 V610" pathLength="1"/>
+              <path d="M396 132 V530 M390 132 H402 M390 530 H402" pathLength="1"/>
+            </g>
+            <g class="kd"><path d="M40 530 H380 M40 400 H380 M40 266 H380 M40 132 H380"/></g>
+            <g class="i">
+              <path d="M212 40 V600 M228 40 V600" pathLength="1"/>
+              <path class="gold" d="M220 600 C170 570 270 550 220 520 C170 490 270 450 220 420 C170 390 270 350 220 320 C170 290 270 250 220 220 C170 190 270 160 220 132 C190 112 250 80 222 50" pathLength="1"/>
+            </g>
+            <g class="lf">
+              <use href="#leaf" transform="translate(226 530) rotate(-25) scale(1.25)"/>
+              <use href="#leaf" transform="translate(214 400) rotate(-155) scale(1.25)"/>
+              <use href="#leaf" transform="translate(226 266) rotate(-25) scale(1.25)"/>
+              <use href="#leaf" transform="translate(222 470) rotate(-150) scale(.7)"/>
+              <use href="#leaf" transform="translate(218 336) rotate(-30) scale(.7)"/>
+              <use href="#leaf" transform="translate(222 200) rotate(-150) scale(.7)"/>
+            </g>
+            <g class="lf lf-clay">
+              <use href="#leaf" transform="translate(214 132) rotate(-155) scale(1.25)"/>
+            </g>
+            <g class="kd kd-clay"><path d="M118 82 H218 V170 H118 Z"/></g>
+            <g class="t">
+              <text x="300" y="522">01 · LISTINGS</text><text x="300" y="546" class="t-sub">5,000+ postings, filtered</text>
+              <text x="40" y="392">02 · TAILOR</text><text x="40" y="416" class="t-sub">resume + cover letter</text>
+              <text x="300" y="258">03 · REVIEW</text><text x="300" y="282" class="t-sub">you approve or skip</text>
+              <text x="40" y="66" class="clay-text">04 · SUBMIT</text><text x="40" y="190" class="t-sub clay-text">reserved: by you</text>
+              <text x="408" y="340" class="t-dim" transform="rotate(90 408 340)">ONE DAY</text>
+            </g>
+          </svg>
+          <figcaption class="caption">Plate IV · Growth pattern</figcaption>
+        </figure>
+        <div class="plate-text reveal">
+          <p class="plate-no">Plate IV</p>
+          <h2 id="growth-title">Growth pattern</h2>
+          <p class="plate-claim"><em>One climb a day.</em></p>
+          <ol class="growth-steps" role="list">
+            <li><span><b>Install once.</b> Download the folder and run <code>./install.sh</code>.</span></li>
+            <li><span><b>Say "set me up".</b> Hand your AI assistant your resume. It asks a few questions and turns your experience into facts it's allowed to use.</span></li>
+            <li><span><b>Run today's batch.</b> It finds the best new roles, tailors a resume for each, and lines them up on a review page.</span></li>
+            <li><span><b>Approve, open, submit.</b> It fills the form. The last node is yours.</span></li>
           </ol>
-
-          <div class="panels">
-            <div class="panel" data-panel="1">
-              <span class="step-num panel-num" aria-hidden="true">01 · Install once</span>
-              <div class="terminal" role="group" aria-label="Example: terminal running the installer" tabindex="0">
-<pre><span class="t-dim">$</span> ./install.sh
-
-<span class="t-accent">==&gt;</span> Checking Python (3.9 or newer)
-Python 3.11.4
-
-<span class="t-accent">==&gt;</span> Looking for Google Chrome
-<span class="t-ok">found</span>
-
-<span class="t-accent">==&gt;</span> Setting up your profile folder
-Created profile/ from the sample applicant.
-
-<span class="t-accent">==&gt;</span> Done. Next: open this folder in your
-    AI assistant and say "Set me up".</pre>
-              </div>
-            </div>
-            <div class="panel" data-panel="2">
-              <span class="step-num panel-num" aria-hidden="true">02 · Say "set me up"</span>
-              <div class="chat" role="group" aria-label="Example setup chat">
-                <p class="bubble me"><span class="sr-only">You: </span>Set me up. Here's my resume.</p>
-                <p class="bubble ai"><span class="sr-only">Assistant: </span>Read it: 2 jobs, 2 projects, 11 facts. A few quick questions first. Will you need visa sponsorship, now or later?</p>
-                <p class="bubble me"><span class="sr-only">You: </span>No, I'm a US citizen.</p>
-                <p class="bubble ai"><span class="sr-only">Assistant: </span>Got it. Demographic questions will stay "decline to self-identify" unless you change them. Profile check passed.</p>
-              </div>
-            </div>
-            <div class="panel" data-panel="3">
-              <span class="step-num panel-num" aria-hidden="true">03 · Run today's batch</span>
-              <div class="review" role="group" aria-label="Example review page">
-                <div class="review-head"><span>Today</span><span class="muted">3 ready for you</span></div>
-                <div class="review-row"><div><strong>Acme Robotics</strong><span>Software Engineer Intern</span></div><span class="fit">Fit 8</span></div>
-                <div class="review-row"><div><strong>Northwind Health</strong><span>Data Engineering Intern</span></div><span class="fit">Fit 7</span></div>
-                <div class="review-row"><div><strong>Lumen Labs</strong><span>Mobile Engineer Intern</span></div><span class="fit">Fit 7</span></div>
-                <div class="review-actions" aria-hidden="true"><span class="pill">Approve</span><span class="pill pill-quiet">Skip</span></div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
 
-    <section class="promises" id="promises" aria-labelledby="promises-title">
+    <!-- PLATE V: POT DETAIL / never leaves your laptop -->
+    <section class="plate" id="pot" data-plate="05" data-name="Pot detail" aria-labelledby="pot-title">
+      <div class="wrap plate-grid">
+        <div class="plate-text reveal">
+          <p class="plate-no">Plate V</p>
+          <h2 id="pot-title">Pot detail</h2>
+          <p class="plate-claim"><em>Nothing leaves the pot.</em></p>
+          <p>Your resume, your answers and every application live in one folder on your computer. No account, no server, no upload. The roots stay where you planted them.</p>
+          <dl class="spec">
+            <div><dt>profile/</dt><dd>your facts and answers</dd></div>
+            <div><dt>resumes/</dt><dd>one folder per job</dd></div>
+            <div><dt>data/</dt><dd>job list, logins, logs</dd></div>
+          </dl>
+        </div>
+        <figure class="drawing">
+          <svg viewBox="0 0 520 440" role="img" aria-labelledby="pot-d-title pot-d-desc">
+            <title id="pot-d-title">Plate V, pot detail</title>
+            <desc id="pot-d-desc">A section through the pot shows three layers of soil labelled profile, resumes and data. An arrow leaving the pot towards a cloud is crossed out: no upload.</desc>
+            <g class="k">
+              <path d="M260 30 V420 M40 360 H480" pathLength="1"/>
+              <path d="M150 22 H370 M150 16 V28 M370 16 V28 M108 100 V340 M102 100 H114 M102 340 H114" pathLength="1"/>
+            </g>
+            <g class="w">
+              <path class="band band-1" d="M152 110 H368 L363 170 H157 Z"/>
+              <path class="band band-2" d="M157 170 H363 L356 240 H164 Z"/>
+              <path class="band band-3" d="M164 240 H356 L346 340 H174 Z"/>
+            </g>
+            <g class="i">
+              <path d="M144 100 H376 M150 100 L174 340 H346 L370 100 M144 110 H376" pathLength="1"/>
+              <path d="M157 170 H363 M164 240 H356" pathLength="1"/>
+              <path d="M260 100 V58" pathLength="1"/>
+              <path d="M240 300 C230 320 236 334 226 340 M280 296 C292 318 286 330 296 340 M260 290 V340" pathLength="1"/>
+            </g>
+            <g class="lf">
+              <use href="#leaf" transform="translate(260 72) rotate(-35) scale(.7)"/>
+              <use href="#leaf" transform="translate(260 86) rotate(-145) scale(.7)"/>
+            </g>
+            <g class="i">
+              <path class="clay" d="M378 128 C420 112 444 90 462 66 M452 66 H462 V76" pathLength="1"/>
+            </g>
+            <g class="t">
+              <text x="260" y="146" text-anchor="middle" class="t-mono">profile/</text>
+              <text x="260" y="212" text-anchor="middle" class="t-mono">resumes/</text>
+              <text x="260" y="296" text-anchor="middle" class="t-mono">data/</text>
+              <text x="260" y="12" text-anchor="middle">Ø · YOUR LAPTOP</text>
+              <text x="96" y="220" class="t-dim" transform="rotate(-90 96 220)">LOCAL</text>
+              <path class="x-clay" d="M404 86 L424 106 M424 86 L404 106"/>
+              <text x="430" y="136" class="clay-text">NO UPLOAD</text>
+            </g>
+          </svg>
+          <figcaption class="caption">Plate V · Pot detail · section A–A</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- PLATE VI: THE LAST CUT / never submits -->
+    <section class="plate" id="cut" data-plate="06" data-name="The last cut" aria-labelledby="cut-title">
+      <div class="wrap plate-grid plate-grid-flip">
+        <figure class="drawing">
+          <svg viewBox="0 0 560 450" role="img" aria-labelledby="cut-d-title cut-d-desc">
+            <title id="cut-d-title">Plate VI, the last cut</title>
+            <desc id="cut-d-desc">An application form drawn as an elevation. Five fields are filled for the sample applicant Alex Rivera; the gender question is left for you. The Submit button is outlined and marked reserved: one click, by you.</desc>
+            <g class="kd"><path d="M60 40 H500 V400 H60 Z"/></g>
+            <g class="k">
+              <path d="M520 112 V350 M514 112 H526 M514 350 H526 M80 30 V44 M480 30 V44 M80 37 H480" pathLength="1"/>
+            </g>
+            <g class="i">
+              <path d="M80 60 H480 V390 H80 Z M80 92 H480" pathLength="1"/>
+              <path d="M230 112 H462 V138 H230 Z M230 160 H462 V186 H230 Z M230 208 H462 V234 H230 Z M230 256 H462 V282 H230 Z M230 304 H462 V330 H230 Z" pathLength="1"/>
+            </g>
+            <g class="t">
+              <text x="98" y="81" class="t-head">Software Engineer Intern · Acme Robotics</text>
+              <text x="98" y="130">Full name</text>
+              <text x="98" y="178">Email</text>
+              <text x="98" y="226">Resume</text>
+              <text x="98" y="274">Sponsorship?</text>
+              <text x="98" y="322">Gender</text>
+              <text x="280" y="26" text-anchor="middle" class="t-dim">FORM · 6 FIELDS</text>
+              <text x="534" y="230" class="t-dim" transform="rotate(90 534 230)">5 / 6 FILLED</text>
+            </g>
+            <g class="w">
+              <text x="242" y="130" class="v">Alex Rivera</text>
+              <text x="242" y="178" class="v">alex.rivera@example.com</text>
+              <text x="242" y="226" class="v v-mono">Alex_Rivera_Resume.pdf</text>
+              <text x="242" y="274" class="v">No</text>
+              <text x="242" y="322" class="v clay-text">left for you</text>
+              <rect x="352" y="346" width="110" height="30" rx="5" class="submit-fill"/>
+              <text x="407" y="366" text-anchor="middle" class="submit-text">Submit</text>
+            </g>
+            <g class="kd kd-clay"><path d="M346 340 H468 V382 H346 Z"/></g>
+            <g class="t">
+              <path class="clay" d="M346 361 H300 L270 420 H120" pathLength="1"/>
+              <text x="120" y="412" class="clay-text">RESERVED</text>
+              <text x="120" y="436" class="t-sub clay-text">one click, by you</text>
+            </g>
+          </svg>
+          <figcaption class="caption">Plate VI · The last cut · elevation</figcaption>
+        </figure>
+        <div class="plate-text reveal">
+          <p class="plate-no">Plate VI</p>
+          <h2 id="cut-title">The last cut</h2>
+          <p class="plate-claim"><em>It never submits for you.</em></p>
+          <p>employMint fills the form, marks anything you need to answer, and stops. There's no code that clicks Submit. Demographic, salary and consent questions are always left for you.</p>
+          <dl class="spec">
+            <div><dt>Greenhouse, Ashby</dt><dd>filled automatically</dd></div>
+            <div><dt>Workday</dt><dd>walks the steps, stops at Review</dd></div>
+            <div><dt>Lever</dt><dd>opens in your Chrome with an answer sheet</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE: download -->
+    <section class="plate plate-schedule" id="get" data-plate="07" data-name="Schedule" aria-labelledby="get-title">
       <div class="wrap">
-        <h2 id="promises-title" class="section-title reveal">Three things it will never do</h2>
-        <div class="promise-grid">
-          <article class="promise reveal">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M8 12h8" stroke-dasharray="2 2"/></svg>
-            <h3><span class="never">Never</span> submit for you</h3>
-            <p>There's no code that clicks Submit. It fills the form, shows you what to check, and waits for you.</p>
-          </article>
-          <article class="promise reveal">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12l2 2 4-4"/></svg>
-            <h3><span class="never">Never</span> invent a fact</h3>
-            <p>Every resume bullet points to something you told it. A number or tool it can't trace back gets rejected.</p>
-          </article>
-          <article class="promise reveal">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>
-            <h3><span class="never">Never</span> leave your laptop</h3>
-            <p>Your resume, answers and applications stay in a folder on your computer. No account, no upload.</p>
-          </article>
+        <div class="plate-head reveal">
+          <p class="plate-no">Schedule</p>
+          <h2 id="get-title">Get employMint</h2>
         </div>
-      </div>
-    </section>
-
-    <section class="get" id="get" aria-labelledby="get-title" data-tint>
-      <div class="wrap get-grid">
-        <div class="reveal">
-          <h2 id="get-title" class="section-title">Get employMint</h2>
-          <p class="get-lede">Free and MIT-licensed. You'll need macOS or Linux (Windows through WSL), Python 3.9+, Google Chrome, and an AI assistant like Claude Code.</p>
-          <a class="btn btn-large" href="https://github.com/kunalagarrwal/employMint/archive/refs/heads/main.zip">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
-            Download ZIP
-          </a>
-          <p class="or">or clone it</p>
-          <div class="clone">
-            <code id="clone-cmd" tabindex="0">git clone https://github.com/kunalagarrwal/employMint.git</code>
-            <button class="copy" type="button" data-copy="#clone-cmd" aria-label="Copy the git clone command">Copy</button>
+        <div class="schedule reveal">
+          <table>
+            <caption class="sr-only">What you need and how to start</caption>
+            <thead><tr><th scope="col">Item</th><th scope="col">Specification</th><th scope="col">Note</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Computer</th><td>macOS or Linux</td><td>Windows through WSL</td></tr>
+              <tr><th scope="row">Python</th><td>3.9 or newer</td><td>python.org</td></tr>
+              <tr><th scope="row">Browser</th><td>Google Chrome</td><td>not Chromium</td></tr>
+              <tr><th scope="row">Assistant</th><td>Claude Code</td><td>Codex and others also work</td></tr>
+              <tr><th scope="row">Licence</th><td>MIT</td><td>free, open source</td></tr>
+            </tbody>
+          </table>
+          <div class="stamp-col">
+            <a class="stamp" href="https://github.com/kunalagarrwal/employMint/archive/refs/heads/main.zip">
+              <span class="stamp-top">Approved for</span>
+              <span class="stamp-main">Download ZIP</span>
+              <span class="stamp-bot">employMint · main</span>
+            </a>
+            <p class="or">or clone it</p>
+            <div class="clone">
+              <code id="clone-cmd" tabindex="0">git clone https://github.com/kunalagarrwal/employMint.git</code>
+              <button class="copy" type="button" data-copy="#clone-cmd" aria-label="Copy the git clone command">Copy</button>
+            </div>
+            <p class="copy-status" role="status" aria-live="polite"></p>
           </div>
-          <p class="copy-status" role="status" aria-live="polite"></p>
         </div>
         <ol class="next reveal" role="list" aria-label="After downloading">
           <li><span aria-hidden="true">1</span><div><strong>Open the folder in a terminal</strong><p>Unzip it first if you downloaded the ZIP.</p></div></li>
@@ -235,10 +441,7 @@ Created profile/ from the sample applicant.
 
   <footer class="footer">
     <div class="wrap footer-inner">
-      <span class="brand brand-small">
-        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14Z"/><path d="M5 19 13 11"/></svg>
-        employMint
-      </span>
+      <span class="brand brand-small">EMPLOYMINT</span>
       <span class="muted">MIT licensed. Not affiliated with any job board or AI company.</span>
       <a href="https://github.com/kunalagarrwal/employMint">employMint on GitHub</a>
     </div>
