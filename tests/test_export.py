@@ -33,6 +33,10 @@ def test_site_and_pages_workflow_are_shipped():
     assert "site" in X.ALLOW and ".github" in X.ALLOW
 
 
+def test_optional_settings_example_is_shipped():
+    assert ".env.example" in X.ALLOW
+
+
 def test_site_images_allowed_other_binaries_blocked(tmp_path):
     (tmp_path / "site").mkdir()
     (tmp_path / "site" / "og.png").write_bytes(b"\x89PNG\r\n\x1a\n\x00\xff")

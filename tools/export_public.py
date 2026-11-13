@@ -23,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ALLOW = ["src", "tests", "docs", "examples", "site", ".github", ".claude/skills", "tools/export_public.py", "tools/snapshot.py",
          "README.md", "AGENTS.md", "CLAUDE.md", "install.sh", "requirements.txt", "requirements-dev.txt",
-         "pytest.ini", ".gitignore", ".gitattributes", "LICENSE"]
+         "pytest.ini", ".gitignore", ".gitattributes", "LICENSE", ".env.example"]
 SKIP_PARTS = {"__pycache__", ".pytest_cache"}
 SKIP_SUFFIXES = {".pyc"}
 SITE_MEDIA = {".png", ".jpg", ".webp", ".mp4"}  # the only binary files allowed, and only under site/
