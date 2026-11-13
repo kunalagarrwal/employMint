@@ -136,7 +136,9 @@ pip install -r requirements-dev.txt
 python3 -m pytest                      # shared tests, run against the sample applicant
 python3 -m pytest profile/tests        # your own tests, if you keep any (profile/ is never committed)
 python3 tools/snapshot.py save before  # hash every output for your profile; compare after a refactor
-python3 tools/export_public.py         # build a shareable copy with no personal data in it
+python3 tools/check_private.py         # look for your personal details in what you would push
+ln -sf ../../tools/check_private.py .git/hooks/pre-push   # run that check before every git push
+python3 tools/export_public.py         # or build a separate shareable copy with no personal data in it
 ```
 
 ## Stack
