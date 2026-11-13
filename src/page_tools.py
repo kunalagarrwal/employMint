@@ -8,6 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from jobs import ROOT  # noqa: E402
 from formjs import PANEL_JS  # noqa: E402
 
+LAST_PANEL = {"panel": None}  # the panel most recently drawn (Workday redraws it on every step)
+
 BROWSER_PROFILE = ROOT / "data" / "browser-profile"  # keeps your logins between runs; stays on this laptop
 
 CONFIRM_TEXT = re.compile(
@@ -47,6 +49,13 @@ def launch_browser(p, action):
         # Only the page itself (our panel or the Lever sheet), never an ad or embedded iframe on a job site.
         if source.get("frame") is not None and source["frame"].parent_frame is not None:
             return
+        if isinstance(value, str) and value.startswith("remember:"):  # a "Remember my answer" box: kept apart
+            try:
+                _, i, on = value.split(":")
+                action.setdefault("remember", {})[int(i)] = on == "1"
+            except ValueError:
+                pass
+            return
         action["v"] = value
     ctx.expose_binding("employmintAction", on_action)
     return ctx
@@ -66,6 +75,7 @@ def visible(page, sel):
 
 def show(page, items, filled, title, queue):
     panel = [items, filled, title, queue]
+    LAST_PANEL["panel"] = panel
     try:
         page.evaluate(PANEL_JS, panel)
     except Exception:
@@ -95,6 +105,8 @@ def wait_while(page, action, cond, timeout_s=1200):
         try:
             if not cond():
                 return None
+            if action.get("tick"):
+                action["tick"](page)  # e.g. note answers the applicant asked to remember
             page.wait_for_timeout(1500)
         except Exception:
             time.sleep(1.5)

@@ -18,9 +18,9 @@ flowchart LR
     SC --> CL[cover-letter skill<br/>writes cover.json]
     CL --> CC{cover.py check}
     CC -- yes --> CP[cover letter PDF]
-    R --> RV[review.py<br/>Approve / Skip]
+    R --> RV[review.py<br/>Skip or start applying]
     CP --> RV
-    RV -- approved --> Q[apply.py queue]
+    RV -- not skipped --> Q[apply.py queue]
     Q --> K[You read the form and click Submit]
     K --> D[confirmation detected: status = applied]
 ```

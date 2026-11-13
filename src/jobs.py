@@ -14,6 +14,7 @@ Usage:
   python3 src/jobs.py tailored <id> <dir>   record a finished tailored resume for a batch job
 
 Your statuses: queued -> tailored -> approved / skip -> applied -> interview / rejected / offer
+A job whose posting closes before you apply moves to 'closed' (see src/live.py).
 """
 import argparse
 import csv
@@ -45,7 +46,8 @@ PROFILE_PATH = me.PROFILE_PATH
 TERM = me.season(me.prefs())  # internship season, from preferences.json
 SIMPLIFY_URL = me.listings_url(TERM)
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
-USER_STATUSES = {"queued", "tailored", "approved", "skip", "applied", "assessment", "interview", "rejected", "offer"}
+USER_STATUSES = {"queued", "tailored", "approved", "skip", "applied", "assessment", "interview", "rejected", "offer",
+                 "closed"}
 BATCH_DIR = DATA / "batches"
 # Statuses that count against a company's application limit.
 COUNTS_AS_APPLIED = ("approved", "applied", "assessment", "interview", "rejected", "offer")
@@ -232,7 +234,8 @@ def db_connect():
     db.row_factory = sqlite3.Row
     db.executescript(SCHEMA)
     cols = {r[1] for r in db.execute("PRAGMA table_info(jobs)")}
-    for col, typ in {"batch_date": "TEXT", "resume_dir": "TEXT", "fit": "REAL", "decided_at": "TEXT"}.items():
+    for col, typ in {"batch_date": "TEXT", "resume_dir": "TEXT", "fit": "REAL", "decided_at": "TEXT",
+                     "live_state": "TEXT", "live_reason": "TEXT", "live_checked_at": "TEXT"}.items():
         if col not in cols:
             db.execute(f"ALTER TABLE jobs ADD COLUMN {col} {typ}")
     return db
@@ -590,7 +593,7 @@ def cmd_score(db, args):
 def cmd_shortlist(db, args):
     """Top N overall, plus the best few of every track so no track gets buried."""
     base = ("SELECT * FROM jobs WHERE pipeline='eligible' AND score IS NOT NULL "
-            "AND (app_status IS NULL OR app_status NOT IN ('skip','approved','applied','rejected','offer','interview')) ")
+            "AND (app_status IS NULL OR app_status NOT IN ('skip','approved','applied','rejected','offer','interview','closed')) ")
     rows = db.execute(base + "ORDER BY score DESC, date_posted DESC LIMIT ?", (args.n,)).fetchall()
     have = {r["id"] for r in rows}
     per_track = max(3, args.n // 10)
@@ -701,13 +704,31 @@ def cmd_batch(db, args):
     pending = {r[0].lower() for r in db.execute("SELECT company FROM jobs WHERE app_status IN ('queued','tailored')")}
     cands = db.execute("SELECT * FROM jobs WHERE pipeline='eligible' AND score IS NOT NULL AND app_status IS NULL "
                        "ORDER BY score DESC, date_posted DESC").fetchall()
-    picked, used, limited = [], set(pending), set()
+    picked, used, limited, closed = [], set(pending), set(), []
+    check = not getattr(args, "no_live", False)
+    seen_live = {}
+
+    def still_open(r):
+        """Checks the posting right before a resume is tailored for it; closed ones leave the pool."""
+        if not check:
+            return True
+        if r["id"] in seen_live:
+            return seen_live[r["id"]]
+        import live
+        state, reason = live.check_job(r)
+        db.execute("UPDATE jobs SET live_state=?, live_reason=?, live_checked_at=? WHERE id=?",
+                   (state, reason, now_iso(), r["id"]))
+        if state == live.CLOSED:
+            db.execute("UPDATE jobs SET pipeline='excluded', reason='closed' WHERE id=?", (r["id"],))
+            closed.append(r["company"])
+        seen_live[r["id"]] = state != live.CLOSED
+        return seen_live[r["id"]]
     if getattr(args, "ids", None):  # hand-picked list (e.g. AI-native / vibe-coding roles), in the given order
         wanted = [i.strip() for i in args.ids.split(",") if i.strip()]
         by_id = {r["id"]: r for r in cands}
         for i in wanted:
             r = by_id.get(i)
-            if r and not at_limit(db, r["company"]):
+            if r and not at_limit(db, r["company"]) and still_open(r):
                 picked.append(r)
         cands = []
         args.n = len(picked)
@@ -719,7 +740,7 @@ def cmd_batch(db, args):
         if at_limit(db, r["company"]):
             limited.add(c)
             return False
-        return True
+        return still_open(r)
 
     for track in tracks:  # best job of each track first, so every track shows up
         r = next((r for r in cands if r["track"] == track and ok(r)), None)
@@ -745,6 +766,8 @@ def cmd_batch(db, args):
     print(f"Queued {len(batch)} jobs -> {out}")
     if limited:
         print(f"Skipped (application limit reached): {', '.join(sorted(limited))}")
+    if closed:
+        print(f"Skipped (posting already closed): {', '.join(closed)}")
     for b in batch:
         print(f"  {b['score']:>5}  {b['track']:<22} {b['company'][:22]:<22} {b['title'][:55]}")
 
@@ -787,6 +810,7 @@ def main():
     p.add_argument("--n", type=int, default=10)
     p.add_argument("--force", action="store_true")
     p.add_argument("--ids", help="comma-separated job ids to queue instead of picking by score")
+    p.add_argument("--no-live", action="store_true", help="don't check that each posting is still open")
     p = sub.add_parser("tailored")
     p.add_argument("id")
     p.add_argument("dir")

@@ -1,11 +1,11 @@
 ---
 name: daily-batch
-description: Run the applicant's daily internship batch - refresh job listings, pick today's top matches, tailor a resume for each, and open the local review page so they can approve or skip. Use when asked to run today's batch, do the daily review, find and tailor today's internships, or similar.
+description: Run the applicant's daily internship batch - refresh job listings, pick today's top matches, tailor a resume for each, and open the local review page so they can start applying. Use when asked to run today's batch, do the daily review, find and tailor today's internships, or similar.
 ---
 
 # Daily internship batch
 
-This prepares applications for review. **It never submits anything.** Applying is a separate step that only touches jobs the applicant approved.
+This prepares applications for review. **It never submits anything.** Applying is a separate step: the applicant reads each filled form and submits it themselves (submitting is their yes).
 
 ## Steps
 
@@ -37,4 +37,6 @@ This prepares applications for review. **It never submits anything.** Applying i
    - What was skipped and why
    - Any company close to its application limit
 
-   Then tell them to approve or skip on the review page. Approved jobs get an "Open application" button there (see the `apply-jobs` skill).
+   Then tell them to click **Start applying** on the review page. There's no approve step: each tailored job opens
+   filled in, and they Submit it (yes) or press **Not for me** (no). They can still Skip jobs on the review page first.
+   See the `apply-jobs` skill.

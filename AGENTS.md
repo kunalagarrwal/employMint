@@ -12,6 +12,8 @@ postings, write a truthful one-page resume and cover letter for each, and fill t
   Don't tick consent or certification boxes, create accounts, or enter passwords. The student does those.
 - **Never evade bot checks** (hCaptcha, "access restricted"). Hand the form to the student instead.
 - **Demographic, salary, relocation and consent questions are the student's decision.** Flag them; don't answer.
+  The one exception is `profile/remembered.json`: answers the student entered themselves and asked to reuse. Never
+  write to that file yourself.
 - **Keep personal data local.** It lives in `profile/`, `resumes/` and `data/`, which git ignores. Don't copy it
   anywhere else or send it to other services.
 
@@ -28,7 +30,7 @@ Each task has a step-by-step instruction file. Read it and follow it.
 | run today's batch, find and tailor internships | `.claude/skills/daily-batch/SKILL.md` |
 | tailor a resume to one job | `.claude/skills/tailor-resume/SKILL.md` |
 | write a cover letter | `.claude/skills/cover-letter/SKILL.md` |
-| apply to approved jobs, fill a form | `.claude/skills/apply-jobs/SKILL.md` |
+| apply to jobs, start applying, fill a form | `.claude/skills/apply-jobs/SKILL.md` |
 
 Before resume, letter or form work, also read `profile/guidance.md` if it exists: the student's own rules. Where
 it disagrees with a skill file, it wins.
@@ -48,7 +50,8 @@ it disagrees with a skill file, it wins.
 ```bash
 python3 src/profile_check.py                         # check the profile files
 python3 src/jobs.py run                              # refresh listings, visa scan, score
-python3 src/jobs.py batch --n 10                     # pick today's jobs
+python3 src/jobs.py batch --n 10                     # pick today's jobs (skips postings that already closed)
+python3 src/live.py check                            # which approved jobs are still open; closed ones move to Closed
 python3 src/render.py resumes/<slug>/tailored.json   # verify + render a resume PDF
 python3 src/cover.py resumes/<slug>/cover.json       # verify + render a cover letter
 python3 src/review.py                                # review page at http://127.0.0.1:8765

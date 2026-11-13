@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from formjs import EXTRACT_JS  # noqa: E402
 import me  # noqa: E402
-from answers import job_values, load_job_answers, load_rules, merge_lone_options, norm, resolve, sheet_answer  # noqa: E402
+from answers import job_values, load_job_answers, load_remembered, load_rules, merge_lone_options, norm, resolve, sheet_answer  # noqa: E402
 
 # ---------- Lever: hand off to the applicant's own Chrome ----------
 # Lever guards Submit with an invisible hCaptcha that rejects script-controlled browsers
@@ -23,6 +23,7 @@ def lever_rows(page, job):
     rules, values = load_rules()
     values = job_values(job, values)
     job_answers = load_job_answers(job["resume_dir"])
+    remembered = load_remembered()
     qs = [q for q in page.evaluate(EXTRACT_JS) if q["visible"] and q["kind"] != "file" and q["title"]]
     merged = merge_lone_options(qs)
     rows, seen = [], set()
@@ -31,7 +32,7 @@ def lever_rows(page, job):
         if norm(q["title"]) in seen:
             continue
         seen.add(norm(q["title"]))
-        a, note = sheet_answer(q, resolve(q, rules, values, job_answers))
+        a, note = sheet_answer(q, resolve(q, rules, values, job_answers, remembered))
         a = re.sub(r"\)\s+(A|All) (person|persons) .*", ")", a, flags=re.S)  # drop EEO definitions
         rows.append({"q": q["title"], "a": a, "note": note, "req": q["required"]})
     if values.get("cover_text") and not any(values["cover_text"][:40] in r["a"] for r in rows):
@@ -51,8 +52,10 @@ def lever_sheet_html(job, url, rows, values, queue):
         note = f'<div class="note">{e(r["note"])}</div>' if r["note"] else ""
         copy = '<button class="copy">Copy</button>' if r["a"] else ""
         body += f'<tr><td class="q">{e(r["q"])}{star}{note}</td><td class="a">{e(r["a"]) or "<i>you</i>"}</td><td>{copy}</td></tr>'
-    pos = f'Job {queue["pos"]} of {queue["total"]} · ' if queue else ""
-    queue_btns = '<button data-act="skip">Skip for now</button><button data-act="stop">Stop queue</button>' if queue else ""
+    in_queue = bool(queue and queue.get("total"))
+    pos = f'Job {queue["pos"]} of {queue["total"]} · ' if in_queue else ""
+    queue_btns = '<button data-act="pass">Not for me</button>' + (
+        '<button data-act="skip">Later</button><button data-act="stop">Stop queue</button>' if in_queue else "")
     return f"""<!doctype html><html><head><meta charset="utf-8"><title>Lever answers · {e(job['company'])}</title>
 <style>
 body{{font:14px/1.45 -apple-system,BlinkMacSystemFont,sans-serif;margin:24px auto;max-width:980px;color:#1b1b1b;background:#fbfaf7;padding:0 16px}}

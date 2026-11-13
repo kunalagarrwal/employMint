@@ -22,8 +22,11 @@ Then open this folder in your assistant (for Claude Code, run `claude` here) and
    graduation, which roles you want), and builds your profile. Nothing it writes goes beyond what you told it.
 2. **"Run today's batch"**. It finds today's best-matching postings, tailors a resume (and cover letter
    where needed) for each, and opens a review page at http://127.0.0.1:8765.
-3. **Approve or skip** each job on the review page, then click **Open application**. Chrome opens with the
-   form filled and a panel listing anything you need to answer. Check it, and click Submit yourself.
+3. Click **Start applying** on the review page. Chrome opens each form already filled, with a panel showing
+   the job's fit and anything you need to answer. Read it, then click Submit yourself (that's your yes) or
+   **Not for me** (your no); the next one opens. There's no separate approve step. For questions only you can
+   answer (pay, working in person, travel, availability), tick **Remember my answer** once and later forms
+   fill them for you to check.
 
 ## Why it's built this way
 
@@ -68,8 +71,8 @@ original author's applications (November 2026):
 
 ```
 SimplifyJobs list ─► jobs.py ─► daily batch ─► tailor (AI) ─► review page ─► apply queue ─► you submit
-   (5,000+ listings)   filter,      top N         resume + cover    approve /       fill form,
-                       visa scan,                 letter, verified  skip            stop at Submit
+   (5,000+ listings)   filter,      top N         resume + cover    skip any you    fill form,
+                       visa scan,                 letter, verified  don't want      stop at Submit
                        score
 ```
 
@@ -106,7 +109,8 @@ python3 src/jobs.py batch --n 20        # pick today's jobs to tailor
 python3 src/render.py resumes/<slug>/tailored.json   # verify + render a resume PDF
 python3 src/cover.py resumes/<slug>/cover.json       # verify + render a cover letter
 python3 src/review.py                   # review page at http://127.0.0.1:8765
-python3 src/apply.py queue              # fill approved applications one by one; you submit each
+python3 src/apply.py queue [--group quick|workday|manual]  # fill each waiting application; Submit is your yes
+python3 src/live.py check               # check approved postings are still open; closed ones move to Closed
 python3 src/evals.py [--fill]           # quality report
 ```
 

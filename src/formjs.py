@@ -133,7 +133,9 @@ MARK_JS = r"""([i, state, note]) => {
 }"""
 
 PANEL_JS = r"""([items, filled, company, queue]) => {
+  // queue: {pos, total} inside the apply queue, plus review: {fit, why, gaps} from the tailored resume.
   document.getElementById('employmint-panel')?.remove();
+  queue = queue || {};
   const p = document.createElement('div');
   p.id = 'employmint-panel';
   p.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483647;width:320px;max-height:70vh;overflow:auto;' +
@@ -142,25 +144,40 @@ PANEL_JS = r"""([items, filled, company, queue]) => {
   const esc = s => String(s).replace(/[&<>"]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch]));
   const dot = c => `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c};margin-right:6px"></span>`;
   const col = {drafted: '#1f5eff', check: '#b26b00', you: '#d92d20'};
+  const act = typeof window.employmintAction === 'function';
+  const rv = queue.review || {};
+  const fitWord = f => f >= 8 ? 'strong fit' : f >= 6 ? 'fair fit' : 'long shot';
+  const review = (rv.fit || rv.why || (rv.gaps || []).length) ?
+    `<div style="margin:6px 0;padding:8px 10px;background:#f6f6f4;border-radius:8px">` +
+    (rv.fit ? `<b>Fit ${esc(rv.fit)}/10</b> <span style="color:#666">· ${fitWord(+rv.fit)}</span><br>` : '') +
+    (rv.why ? `<span>${esc(rv.why)}</span>` : '') +
+    ((rv.gaps || []).length ? `<br><span style="color:#666">Gaps: ${rv.gaps.map(esc).join('; ')}</span>` : '') + `</div>` : '';
+  const remember = it => (it.remember && act) ?
+    `<label style="display:block;margin-top:3px;color:#1b1b1b;cursor:pointer"><input type="checkbox" data-rem="${it.i}"` +
+    `${it.on ? ' checked' : ''} style="margin:0 5px 0 0;vertical-align:-2px">Remember my answer for ${esc(it.remember)} questions</label>` : '';
   p.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><b>employMint · ${esc(company)}</b>` +
     `<button id="em-min" style="border:0;background:none;cursor:pointer;font-size:16px">–</button></div>` +
-    `<div id="em-body">` + (queue ? `<p style="margin:4px 0;color:#666">Job ${queue.pos} of ${queue.total} in your queue</p>` : '') +
+    `<div id="em-body">` + (queue.total ? `<p style="margin:4px 0;color:#666">Job ${queue.pos} of ${queue.total} in your queue</p>` : '') +
+    review +
     `<p style="margin:6px 0">${dot('#1a7f37')}${filled} fields filled from your profile.</p>` +
     (items.length ? '<p style="margin:6px 0 4px"><b>Look at these:</b></p>' : '<p>Nothing flagged.</p>') +
-    items.map(it => `<a href="#" data-q="${it.i}" style="display:block;color:inherit;text-decoration:none;padding:4px 0;border-top:1px solid #eee">` +
-      `${dot(col[it.state])}<b>${esc(it.title.slice(0, 70))}</b><br><span style="color:#666">${esc(it.note)}</span></a>`).join('') +
+    items.map(it => `<div style="padding:4px 0;border-top:1px solid #eee"><a href="#" data-q="${it.i}" style="display:block;color:inherit;text-decoration:none">` +
+      `${dot(col[it.state])}<b>${esc(it.title.slice(0, 70))}</b><br><span style="color:#666">${esc(it.note)}</span></a>${remember(it)}</div>`).join('') +
     `<p style="margin:10px 0 0;padding-top:8px;border-top:1px solid #eee"><b>Read everything, then click Submit yourself.</b> ` +
-    `This tool never submits.</p>` +
-    (typeof window.employmintAction === 'function' ?
+    `Submitting is your yes. This tool never submits.</p>` +
+    (act ?
       `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">` +
       `<button data-act="manual" title="Use this if you submitted but no confirmation page was detected">I submitted it</button>` +
-      (queue ? `<button data-act="skip">Skip for now</button><button data-act="stop">Stop queue</button>` : '') +
+      `<button data-act="pass" title="Don't apply to this job. It moves to Skipped on the review page">Not for me</button>` +
+      (queue.total ? `<button data-act="skip" title="Leave it for another time">Later</button><button data-act="stop">Stop queue</button>` : '') +
       `</div>` : '') + `</div>`;
   document.body.appendChild(p);
   p.querySelectorAll('button[data-act]').forEach(b => {
     b.style.cssText = 'font:12px sans-serif;padding:5px 9px;border:1px solid #bbb;border-radius:7px;background:#f6f6f4;cursor:pointer';
     b.onclick = () => { b.disabled = true; b.textContent = 'OK…'; window.employmintAction(b.dataset.act); };
   });
+  p.querySelectorAll('input[data-rem]').forEach(c => c.onchange = () =>
+    window.employmintAction(`remember:${c.dataset.rem}:${c.checked ? 1 : 0}`));
   p.querySelector('#em-min').onclick = () => { const b = p.querySelector('#em-body'); b.style.display = b.style.display === 'none' ? '' : 'none'; };
   p.querySelectorAll('a[data-q]').forEach(a => a.onclick = ev => { ev.preventDefault();
     document.querySelector(`[data-em-q="${a.dataset.q}"]`)?.scrollIntoView({behavior: 'smooth', block: 'center'}); });
@@ -168,6 +185,34 @@ PANEL_JS = r"""([items, filled, company, queue]) => {
     /^(submit|submit application|apply|send application)$/i.test((b.innerText || b.value || '').trim()));
   if (sub) { sub.style.outline = '3px dashed #7c3aed'; sub.style.outlineOffset = '4px'; }
 }"""
+
+# What the applicant has entered in the listed questions right now: [{i, text, value}] (text: the block's
+# words, to check the tag still points at the same question). Used to save answers they ticked "Remember".
+READ_JS = r"""(ids) => ids.map(i => {
+  const c = document.querySelector(`[data-em-q="${i}"]`);
+  if (!c) return null;
+  const T = el => (el ? (el.innerText || el.textContent || '') : '').replace(/\s+/g, ' ').trim();
+  const els = [...c.querySelectorAll(`[data-em-c^="${i}-"]`)];
+  const e0 = els[0];
+  let value = '';
+  if (!e0) value = '';
+  else if (e0.type === 'radio' || e0.type === 'checkbox') {
+    value = els.filter(e => e.checked).map(e => {
+      const l = e.id && document.querySelector(`label[for="${CSS.escape(e.id)}"]`);
+      return T(l || e.closest('label')) || e.value; }).join(', ');
+  } else if (e0.tagName === 'SELECT') value = e0.selectedIndex > 0 ? T(e0.options[e0.selectedIndex]) : '';
+  else if (e0.tagName === 'BUTTON') value = T(e0).replace(/^select( one)?\.*$/i, '');
+  else {
+    const picked = c.querySelector('.select__single-value, [class*="singleValue"], [class*="single-value"], [data-automation-id="selectedItem"]');
+    value = picked ? T(picked) : (e0.value || '').trim();
+  }
+  if (!value) {  // yes/no button pairs (Ashby): the pressed one
+    const on = [...c.querySelectorAll('[data-em-o]')].find(b => b.getAttribute('aria-pressed') === 'true' ||
+      /(^|[_-])(active|selected|checked)/i.test(b.className || ''));
+    if (on) value = T(on);
+  }
+  return {i, text: T(c).slice(0, 400), value};
+})"""
 
 BANNER_JS = """(msg) => { document.getElementById('employmint-banner')?.remove();
   const d = document.createElement('div'); d.id = 'employmint-banner'; d.textContent = msg;

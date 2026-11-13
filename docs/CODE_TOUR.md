@@ -39,27 +39,31 @@ talked out of it.
 ## 3. Deciding: `src/review.py`
 
 `page` shows each job with its fit score, gaps, pay, location and sponsorship signal.
-You click Approve or Skip. Approved jobs feed the apply queue.
+You can Skip the ones you don't want; everything else feeds the apply queue.
+*Decision:* there's no approve step. Reading the filled form is the review, so submitting it is the yes and the
+panel's **Not for me** is the no. A separate approval only let jobs pile up and close before anyone applied.
 *Decision:* the server binds to 127.0.0.1 and `Handler.trusted` rejects requests whose Host or Origin
-isn't local, so a website can't use DNS rebinding to approve jobs or read the page.
+isn't local, so a website can't use DNS rebinding to change jobs or read the page.
 
 ## 4. Filling the form: `src/apply.py` and friends
 
-`cmd_queue` opens one Chrome window and goes through approved jobs. For each one:
+`cmd_queue` opens one Chrome window and goes through approved and tailored jobs. For each one:
 
 1. **`prepare`** opens the form URL and routes by site:
    Workday → `site_workday.workday_flow`;
    Lever → `site_lever.lever_handoff`; everything else → `fill.fill_form`.
 2. **`fill_form`** runs `formjs.EXTRACT_JS` to read every question, uploads the resume first
    (sites parse it and may overwrite fields), then answers each question.
-3. **`answers.resolve`** finds the answer: the job's drafts first, then the saved rules.
+3. **`answers.resolve`** finds the answer: the job's drafts first, then the saved rules, then (only for a
+   question the rules leave to you) an answer you chose to remember (`answers.recall`, `profile/remembered.json`).
    **`pick_option`** picks the option.
    *Decision:* rules are ordered regexes with a fallback list, best first. Each real-world miss became a
    rule fix plus a case in your hand-checked set (`evals/golden_answers.json`).
 4. **`fill_question`** types, selects or clicks, and returns filled / drafted / check / you.
    One failing field is logged and marked *you*; it never stops the rest.
 5. **`wait_outcome`** waits. `page_tools.submitted` watches for a
-   confirmation page, and **`mark_applied`** records it.
+   confirmation page, and **`mark_applied`** records it. Meanwhile **`capture_remembered`** reads any red
+   question you ticked "Remember my answer" on, and **`save_remembered`** stores your answer once you submit.
 
 ### Workday
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from formjs import EXTRACT_JS, MARK_JS  # noqa: E402
-from answers import job_values, load_job_answers, load_rules, norm, pick_option, resolve, search_term  # noqa: E402
+from answers import decision_kind, job_values, load_job_answers, load_remembered, load_rules, norm, pick_option, resolve, search_term  # noqa: E402
 
 def fill_question(page, q, ans):
     """Fills one question. Returns (state, note): state is filled / drafted / check / you / skip."""
@@ -119,6 +119,7 @@ def fill_form(page, job, resume):
     rules, values = load_rules()
     values = job_values(job, values)
     job_answers = load_job_answers(job["resume_dir"])
+    remembered = load_remembered()
     qs = [q for q in page.evaluate(EXTRACT_JS) if q["visible"]]
     # Upload the resume first: Lever and Ashby parse it and may overwrite fields filled before it.
     qs.sort(key=lambda q: 0 if q["kind"] == "file" else 1)
@@ -129,7 +130,7 @@ def fill_form(page, job, resume):
             continue
         ans = None
         try:
-            ans = resolve(q, rules, values, job_answers)
+            ans = resolve(q, rules, values, job_answers, remembered)
             state, note = fill_question(page, q, ans)
         except Exception as ex:  # one bad field shouldn't stop the rest, but say why
             print(f"  couldn't fill '{q['title'][:60]}': {ex!r}"[:300], file=sys.stderr, flush=True)
@@ -151,7 +152,14 @@ def fill_form(page, job, resume):
 def summarize(results):
     filled = sum(1 for r in results if r["state"] == "filled")
     order = {"you": 0, "drafted": 1, "check": 2}
-    items = [{"i": r["i"], "title": r["title"] or "(untitled field)", "state": r["state"], "note": r["note"]}
-             for r in results if r["state"] in order]
+    items = []
+    for r in results:
+        if r["state"] not in order:
+            continue
+        it = {"i": r["i"], "title": r["title"] or "(untitled field)", "state": r["state"], "note": r["note"], "kind": r["kind"]}
+        dk = decision_kind(r["title"], r["kind"]) if r["state"] == "you" else None
+        if dk:  # the panel offers "Remember my answer" for this one
+            it["remember"] = dk[1]
+        items.append(it)
     items.sort(key=lambda x: order[x["state"]])
     return filled, items

@@ -12,7 +12,10 @@ Usage:
   python3 src/apply.py open  <job id> [--force] # visible Chrome: fill, highlight, wait for you to submit
   python3 src/apply.py sheet <job id>          # print copy-paste answers for any site
   python3 src/apply.py try   <job id>          # hidden test fill + screenshot, then discard (never submits)
-  python3 src/apply.py queue [--limit N]       # go through every approved job in one window; you submit each
+  python3 src/apply.py queue [--limit N] [--group quick|workday|manual]
+                                               # go through waiting jobs in one window; Submit is your yes
+
+Before a form opens, the posting is checked (src/live.py). A closed one moves to 'closed' instead of opening.
 
 Colors on the page: green = filled from your profile, blue = drafted for this job
 (read it), amber = filled but check it, red = you need to answer.
@@ -28,15 +31,18 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from jobs import ROOT, db_connect, now_iso  # noqa: E402
-from formjs import BANNER_JS, EXTRACT_JS, PANEL_JS  # noqa: E402,F401
-from answers import job_values, label_matches, load_job_answers, load_rules, merge_lone_options, norm, pick_option, resolve, resume_path, search_term, sheet_answer  # noqa: E402,F401
-from page_tools import CONFIRM_TEXT, CONFIRM_URL, launch_browser, settle, submitted  # noqa: E402,F401
+from formjs import BANNER_JS, EXTRACT_JS, PANEL_JS, READ_JS  # noqa: E402,F401
+from answers import job_values, label_matches, load_job_answers, load_remembered, load_rules, merge_lone_options, norm, pick_option, resolve, resume_path, search_term, sheet_answer  # noqa: E402,F401
+from page_tools import CONFIRM_TEXT, CONFIRM_URL, LAST_PANEL, launch_browser, settle, submitted  # noqa: E402,F401
 from fill import fill_form, summarize  # noqa: E402,F401
+import answers  # noqa: E402
 import me  # noqa: E402
 from site_workday import workday_flow  # noqa: E402,F401
 from site_lever import lever_handoff, lever_sheet_html  # noqa: E402,F401
 
 AUTOFILL_SITES = ("greenhouse", "ashby", "lever")
+# How much of the work employMint does, per site. The review page and the queue group approved jobs by this.
+GROUPS = {"quick": ("greenhouse", "ashby"), "workday": ("workday",), "manual": ("lever", "smartrecruiters", "other")}
 
 def form_url(url):
     base = url.split("?")[0].rstrip("/")
@@ -63,6 +69,10 @@ def site_of(url):
         return "greenhouse"
     return "other"
 
+def group_of(url):
+    site = site_of(form_url(url))
+    return next(g for g, sites in GROUPS.items() if site in sites or g == "manual")
+
 def get_job(db, job_id):
     r = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
     if not r:
@@ -85,6 +95,63 @@ def mark_applied(job_id, final_url):
         db.close()
     start_recruiter_drafts()
 
+def mark_passed(job_id):
+    """The applicant chose "Not for me" on the form: the job moves to Skipped (Undo on the review page)."""
+    db = db_connect()
+    try:
+        db.execute("UPDATE jobs SET app_status='skip', decided_at=? WHERE id=? AND app_status IN ('tailored','approved')",
+                   (now_iso(), job_id))
+        db.commit()
+    finally:
+        db.close()
+
+def review_of(job):
+    """Fit, why and gaps from the tailored resume, shown at the top of the form panel."""
+    try:
+        rv = json.loads((ROOT / job["resume_dir"] / "tailored.json").read_text()).get("review", {})
+    except (TypeError, OSError, ValueError):
+        rv = {}
+    fit = rv.get("fit", job["fit"])
+    return {"fit": fit, "why": rv.get("why", ""), "gaps": list(rv.get("gaps") or [])[:3]}
+
+def capture_remembered(page, action, panel):
+    """Reads what the applicant entered in the questions they ticked "Remember my answer" (saved once they submit).
+    Ticks arrive by field number, which Workday reuses on its next step, so they are turned into question titles."""
+    if not panel:
+        return
+    items = [it for it in panel[0] if it.get("remember")]
+    by_i = {it["i"]: it for it in items}
+    wanted = action.setdefault("remember_titles", {})
+    for i, on in (action.pop("remember", None) or {}).items():
+        if i in by_i:
+            wanted[by_i[i]["title"]] = on
+    captured = action.setdefault("captured", {})
+    for t, on in wanted.items():
+        if not on:
+            captured.pop(t, None)
+    for it in items:
+        it["on"] = bool(wanted.get(it["title"]))  # keeps the box ticked if the panel is drawn again
+    want = [it for it in items if it["on"]]
+    if not want:
+        return
+    for it, got in zip(want, page.evaluate(READ_JS, [it["i"] for it in want])):
+        # Only trust a value still inside the same question (the page may have moved on).
+        if got and got.get("value") and norm(it["title"])[:40] in norm(got.get("text")):
+            captured[it["title"]] = {"title": it["title"], "field": it["kind"], "value": got["value"]}
+
+def save_remembered(action, company):
+    entries = list((action.pop("captured", None) or {}).values())
+    action.pop("remember", None)
+    action.pop("remember_titles", None)
+    if not entries:
+        return
+    try:
+        n = answers.remember(entries, company)
+        if n:
+            print(f"  Saved {n} answer{'s' if n != 1 else ''} to reuse on later forms (profile/remembered.json)", flush=True)
+    except OSError as ex:
+        print(f"WARN: couldn't save remembered answers: {ex}", file=sys.stderr, flush=True)
+
 def start_recruiter_drafts():
     """Finds LinkedIn recruiters for the new application in the background (they show up on the review page)."""
     try:
@@ -101,6 +168,7 @@ def cmd_scan(job):
     rules, values = load_rules()
     values = job_values(job, values)
     job_answers = load_job_answers(job["resume_dir"])
+    remembered = load_remembered()
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome", headless=True)
         page = browser.new_page()
@@ -110,13 +178,15 @@ def cmd_scan(job):
         browser.close()
     rows = []
     for q in qs:
-        ans = resolve(q, rules, values, job_answers)
+        ans = resolve(q, rules, values, job_answers, remembered)
         if ans is None:
             status = "NEEDS ANSWER" if q["required"] else "optional, left blank"
         elif ans.get("flag") and not ans.get("a") and not ans.get("text"):
             status = "you: " + ans["flag"]
         elif ans["src"] == "job":
             status = "job answer"
+        elif ans["src"] == "remembered":
+            status = "remembered (check)"
         else:
             status = "profile" + (" (check)" if ans.get("flag") else "")
         preview = (ans or {}).get("text") or ", ".join((ans or {}).get("a") or [])
@@ -124,7 +194,7 @@ def cmd_scan(job):
                      "status": status, "answer": (preview or "")[:120]})
     print(f"{job['company']} · {job['title']}\n{url}  ({site_of(url)}, {len(rows)} questions)\n")
     for r in rows:
-        shown = f"  [{r['answer'][:50]}]" if r["answer"] and r["status"].startswith(("profile", "job")) else ""
+        shown = f"  [{r['answer'][:50]}]" if r["answer"] and r["status"].startswith(("profile", "job", "remembered")) else ""
         print(f"{'*' if r['required'] else ' '} [{r['kind']:8}] {r['label'][:70]:70}  -> {r['status']}{shown}")
     if job["resume_dir"]:
         out = ROOT / job["resume_dir"] / "questions.json"
@@ -183,6 +253,7 @@ def prepare(page, job, queue=None, action=None):
     if site not in AUTOFILL_SITES:
         items = items + manual_items(job, site, resume)[1:]  # copy-paste sheet for whatever didn't fill
     panel = [items, filled, f"{job['company']} · {job['title']}", queue]
+    LAST_PANEL["panel"] = panel
     page.evaluate(PANEL_JS, panel)
     page.evaluate("() => window.scrollTo(0, 0)")
     print(f"Opened {job['company']} · {job['title']} ({site}): {filled} filled, "
@@ -191,7 +262,7 @@ def prepare(page, job, queue=None, action=None):
 
 def wait_outcome(ctx, action, panel):
     """Waits until the applicant submits (confirmation page) or presses a panel button.
-    Returns (outcome, url): outcome is applied / manual / skip / stop / closed."""
+    Returns (outcome, url): outcome is applied / manual / pass / skip / stop / closed."""
     while True:
         try:
             pages = [pg for pg in ctx.pages if not pg.is_closed()]
@@ -211,6 +282,7 @@ def wait_outcome(ctx, action, panel):
             return "applied", url
         try:
             pg = pages[0]
+            capture_remembered(pg, action, panel)
             if panel and not pg.evaluate("() => !!document.getElementById('employmint-panel')"):
                 pg.evaluate(PANEL_JS, panel)  # the site moved to another page (e.g. Workday step 2)
             pg.wait_for_timeout(1500)
@@ -219,18 +291,29 @@ def wait_outcome(ctx, action, panel):
 
 def cmd_open(job, force):
     from playwright.sync_api import sync_playwright
-    if job["app_status"] != "approved" and not force:
-        sys.exit(f"{job['company']} is '{job['app_status']}', not approved. Approve it on the review page first (or pass --force).")
+    if job["app_status"] not in ("approved", "tailored") and not force:
+        sys.exit(f"{job['company']} is '{job['app_status']}', not waiting to be applied to (pass --force to open it anyway).")
     if not resume_path(job):
         sys.exit("No resume PDF for this job yet. Tailor it first.")
+    if not force:
+        import live
+        ok, reason = live.ensure_open(job["id"])
+        if not ok:
+            sys.exit(f"{job['company']} looks closed ({reason}). Moved it to Closed on the review page; "
+                     f"use Undo there if it's still open.")
     action = {}
     with sync_playwright() as p:
         ctx = launch_browser(p, action)
+        action["tick"] = lambda pg: capture_remembered(pg, action, LAST_PANEL.get("panel"))  # Workday's own waits
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
-        panel = prepare(page, job, None, action)
+        panel = prepare(page, job, {"review": review_of(job)}, action)
         print("Review the form and click Submit yourself. Waiting for the confirmation page.", flush=True)
         outcome, url = wait_outcome(ctx, action, panel)
+        if outcome == "pass":
+            mark_passed(job["id"])
+            print(f"Not for you: moved {job['company']} to Skipped.")
         if outcome in ("applied", "manual"):
+            save_remembered(action, job["company"])
             mark_applied(job["id"], url)
             print(f"Marked {job['company']} as applied ({'confirmation page seen' if outcome == 'applied' else 'you said you submitted'}).")
             try:
@@ -238,44 +321,56 @@ def cmd_open(job, force):
                 ctx.pages[-1].wait_for_event("close", timeout=10 * 60 * 1000)
             except Exception:
                 pass
-        else:
+        elif outcome != "pass":
             print("Closed without submitting; status unchanged.")
         try:
             ctx.close()
         except Exception:
             pass
 
-def queue_jobs(limit=None):
+def queue_jobs(limit=None, group=None):
+    """Every job waiting to be applied to: approved ones, and tailored ones nobody has decided on yet (the filled
+    form is where the applicant decides: Submit is yes, "Not for me" is no). Quickest sites first; within each,
+    approved jobs by longest wait, then tailored jobs from the oldest batch (postings close fast)."""
     db = db_connect()
     try:
-        rows = db.execute("SELECT * FROM jobs WHERE app_status='approved' AND fit IS NOT NULL "
-                          "ORDER BY fit DESC, score DESC").fetchall()
+        rows = db.execute("SELECT * FROM jobs WHERE app_status IN ('approved','tailored') AND fit IS NOT NULL "
+                          "ORDER BY app_status != 'approved', decided_at, batch_date, fit DESC, score DESC").fetchall()
     finally:
         db.close()
-    jobs = [r for r in rows if resume_path(r)]
-    # Auto-filled sites first: they're quickest.
-    jobs.sort(key=lambda r: 0 if site_of(form_url(r["url"])) in AUTOFILL_SITES else 1)
+    jobs = [r for r in rows if resume_path(r) and (group is None or group_of(r["url"]) == group)]
+    order = list(GROUPS)
+    jobs.sort(key=lambda r: order.index(group_of(r["url"])))  # stable: keeps oldest-first inside a group
     return jobs[:limit] if limit else jobs
 
-def cmd_queue(limit=None):
-    """Goes through approved jobs one by one in one Chrome window. The applicant reviews and submits each;
-    the next one opens by itself after the confirmation page (or after Skip)."""
+def cmd_queue(limit=None, group=None):
+    """Goes through waiting jobs one by one in one Chrome window. The applicant reads each filled form and either
+    submits it (yes) or presses "Not for me" (no); the next one opens by itself."""
     from playwright.sync_api import sync_playwright
-    jobs = queue_jobs(limit)
+    import live
+    jobs = queue_jobs(limit, group)
     if not jobs:
-        print("Nothing in the queue: no approved jobs with a scored resume.")
+        print("Nothing in the queue: no tailored or approved jobs with a scored resume.")
         return
-    print(f"Queue: {len(jobs)} approved jobs.", flush=True)
-    done, skipped = [], []
+    print(f"Queue: {len(jobs)} jobs to apply to.", flush=True)
+    done, skipped, closed, passed = [], [], [], []
     action = {}
     with sync_playwright() as p:
         ctx = launch_browser(p, action)
+        action["tick"] = lambda pg: capture_remembered(pg, action, LAST_PANEL.get("panel"))  # Workday's own waits
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         for n, job in enumerate(jobs, 1):
             action["v"] = None
+            for k in ("remember", "remember_titles", "captured"):
+                action.pop(k, None)
+            ok, reason = live.ensure_open(job["id"])
+            if not ok:
+                closed.append(job["company"])
+                print(f"  Closed, not opened: {job['company']} ({reason})", flush=True)
+                continue
             try:
                 page = next((pg for pg in ctx.pages if not pg.is_closed()), None) or ctx.new_page()
-                panel = prepare(page, job, {"pos": n, "total": len(jobs)}, action)
+                panel = prepare(page, job, {"pos": n, "total": len(jobs), "review": review_of(job)}, action)
             except Exception as ex:
                 if not any(not pg.is_closed() for pg in ctx.pages):
                     print("Chrome was closed; stopping the queue.", flush=True)
@@ -285,6 +380,7 @@ def cmd_queue(limit=None):
                 continue
             outcome, url = wait_outcome(ctx, action, panel)
             if outcome in ("applied", "manual"):
+                save_remembered(action, job["company"])
                 try:
                     mark_applied(job["id"], url)
                 except Exception as ex:
@@ -297,16 +393,24 @@ def cmd_queue(limit=None):
                     ctx.pages[-1].wait_for_timeout(2500)
                 except Exception:
                     pass
+            elif outcome == "pass":
+                mark_passed(job["id"])
+                passed.append(job["company"])
+                print(f"  Not for you: {job['company']}", flush=True)
             elif outcome == "skip":
                 skipped.append(job["company"])
                 print(f"  Skipped for now: {job['company']}", flush=True)
             else:
                 break  # stop or window closed
         print(f"Queue finished: {len(done)} applied ({', '.join(done) or 'none'}), "
-              f"{len(skipped)} skipped ({', '.join(skipped) or 'none'}).", flush=True)
+              f"{len(passed)} not for you ({', '.join(passed) or 'none'}), "
+              f"{len(skipped)} left for later ({', '.join(skipped) or 'none'}), "
+              f"{len(closed)} already closed ({', '.join(closed) or 'none'}).", flush=True)
         try:
             pg = next(pg for pg in ctx.pages if not pg.is_closed())
-            pg.evaluate(BANNER_JS, f"Queue done: {len(done)} applied, {len(skipped)} skipped. You can close this window.")
+            pg.evaluate(BANNER_JS, f"Queue done: {len(done)} applied, {len(passed)} not for you, {len(skipped)} for later, "
+                                   f"{len(closed)} already closed. "
+                                   "You can close this window.")
             pg.wait_for_event("close", timeout=10 * 60 * 1000)
         except Exception:
             pass
@@ -360,9 +464,10 @@ def main():
     ap.add_argument("job_id", nargs="?")
     ap.add_argument("--force", action="store_true", help="open even if the job isn't approved yet")
     ap.add_argument("--limit", type=int, help="queue: stop after this many jobs")
+    ap.add_argument("--group", choices=list(GROUPS), help="queue: only quick (auto-filled), workday or manual sites")
     args = ap.parse_args()
     if args.command == "queue":
-        return cmd_queue(args.limit)
+        return cmd_queue(args.limit, args.group)
     if not args.job_id:
         ap.error("job_id is required")
     db = db_connect()

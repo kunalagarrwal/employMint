@@ -1,9 +1,9 @@
 ---
 name: apply-jobs
-description: Prepare and open job applications for the applicant - scan an application form, draft job-specific answers from their profile, and open Chrome with the form filled so they can review and click Submit themselves. Use when asked to apply to approved jobs, prepare application answers, or fill an application form.
+description: Prepare and open job applications for the applicant - scan an application form, draft job-specific answers from their profile, and open Chrome with the form filled so they can review and click Submit themselves. Use when asked to apply to jobs, start the apply queue, prepare application answers, or fill an application form.
 ---
 
-# Apply to approved jobs
+# Apply to jobs
 
 `src/apply.py` fills application forms from `profile/answers.json` (standard answers) and
 `resumes/<slug>/answers.json` (answers for one job). **It never clicks Submit, and neither do you.**
@@ -46,7 +46,7 @@ On other company sites it clicks a plain "Apply" button first, fills what it can
    It fills the form in a hidden browser, prints what happened to each field, saves a screenshot to `data/apply-logs/<company>-try.png`, then throws it all away.
    Look at the screenshot. Dropdowns can pick a wrong but similar option (e.g. the wrong campus of their school). If one does, tighten the pattern in `profile/answers.json` (the rule's `a` and `search`).
 
-4. **Open it for the applicant:** they click **Open application** on the review page (http://127.0.0.1:8765/), or run
+4. **Open it for the applicant:** they click **Start applying** (the whole queue) or **Apply now** / **Open** (one job) on the review page (http://127.0.0.1:8765/), or run
    `python3 src/apply.py open <job id>`.
    Chrome opens with the form filled and a panel listing what to check. The outlines mean:
    - green: filled from the profile
@@ -54,7 +54,16 @@ On other company sites it clicks a plain "Apply" button first, fills what it can
    - amber: check it
    - red: they must answer
 
-   The job must be `approved`. Logins are kept in `data/browser-profile/` on this computer.
+   The job must be `tailored` or `approved`: there's no separate approve step, because reading the filled form *is* the
+   review. Submitting marks it `applied`; **Not for me** moves it to Skipped; **Later** leaves it for the next run.
+   The panel's top shows the job's fit, why and gaps from `tailored.json`. Logins are kept in `data/browser-profile/` on this computer.
+
+   **Remember my answer.** On red questions that are the applicant's own call and recur (pay, working in person,
+   relocation, travel, availability, other offers, non-competes, class standing, high school, country of birth), the panel
+   shows a "Remember my answer" box. If they tick it and submit, *their* answer is saved to `profile/remembered.json`
+   and fills the same kind of question on later forms, amber, for them to check (`scan` shows it as `remembered (check)`).
+   Consent, certification, demographic and company-specific questions are never remembered. Never write to
+   `remembered.json` yourself: only the applicant's own entries go there.
 
 5. **Report**: per job, what was filled, and what the applicant needs to answer themselves before submitting.
 
