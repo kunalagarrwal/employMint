@@ -31,20 +31,39 @@ case "$(uname)" in
     } > "$LAUNCH"
     chmod +x "$LAUNCH"
     # Icon: the website's leaf favicon at app-icon sizes. Skipped quietly if a tool is missing.
+    # Drawn with the same margin as other Mac app icons, then used in place of the AppleScript scroll icon.
     TMP="$(mktemp -d)"
-    if qlmanage -t -s 1024 -o "$TMP" site/favicon.svg >/dev/null 2>&1 && [ -f "$TMP/favicon.svg.png" ]; then
+    # Chrome (via Playwright, which employMint already uses) draws it with transparent corners.
+    "$PY_ABS" - "$TMP/icon.svg.png" <<'PYICON' >/dev/null 2>&1 || true
+import sys
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+svg = Path("site/favicon.svg").read_text().replace('viewBox="0 0 24 24"', 'viewBox="-2.4 -2.4 28.8 28.8" width="1024" height="1024"')
+with sync_playwright() as p:
+    browser = p.chromium.launch(channel="chrome", headless=True)
+    page = browser.new_page(viewport={"width": 1024, "height": 1024})
+    page.set_content(f"<html><body style='margin:0;background:transparent'>{svg}</body></html>")
+    page.screenshot(path=sys.argv[1], omit_background=True)
+    browser.close()
+PYICON
+    if [ -f "$TMP/icon.svg.png" ]; then
       mkdir "$TMP/applet.iconset"
       for s in 16 32 128 256 512; do
-        sips -z "$s" "$s" "$TMP/favicon.svg.png" --out "$TMP/applet.iconset/icon_${s}x${s}.png" >/dev/null
-        sips -z $((s * 2)) $((s * 2)) "$TMP/favicon.svg.png" --out "$TMP/applet.iconset/icon_${s}x${s}@2x.png" >/dev/null
+        sips -z "$s" "$s" "$TMP/icon.svg.png" --out "$TMP/applet.iconset/icon_${s}x${s}.png" >/dev/null
+        sips -z $((s * 2)) $((s * 2)) "$TMP/icon.svg.png" --out "$TMP/applet.iconset/icon_${s}x${s}@2x.png" >/dev/null
       done
-      iconutil -c icns "$TMP/applet.iconset" -o "$APP/Contents/Resources/applet.icns" 2>/dev/null || true
+      if iconutil -c icns "$TMP/applet.iconset" -o "$APP/Contents/Resources/applet.icns" 2>/dev/null; then
+        rm -f "$APP/Contents/Resources/Assets.car"  # newer macOS reads this icon catalog first; it holds the scroll
+        /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$APP/Contents/Info.plist" 2>/dev/null || true
+      fi
     fi
     rm -rf "$TMP"
     /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier io.github.employmint.review" "$APP/Contents/Info.plist" 2>/dev/null \
       || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string io.github.employmint.review" "$APP/Contents/Info.plist"
     codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || true  # re-sign after adding files, so macOS remembers "Allow"
     touch "$APP"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" \
+      >/dev/null 2>&1 || true  # refresh the icon Finder and the Dock show
     echo "Added $APP. Open it from Spotlight or Launchpad, or drag it to your Dock."
     echo "The first time, macOS may ask to let employMint use this folder: click Allow."
     ;;
