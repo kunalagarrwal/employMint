@@ -29,7 +29,7 @@ This prepares applications for review. **It never submits anything.** Applying i
    - Then prepare the form, following `.claude/skills/apply-jobs/SKILL.md` steps 1–2: `python3 src/apply.py scan <id>`, and draft `resumes/<slug>/answers.json` for any questions marked NEEDS ANSWER or job-specific.
    - If the form has a cover letter field, or the job is on a manual site (Workday, SmartRecruiters), write a cover letter following `.claude/skills/cover-letter/SKILL.md`. It uploads automatically.
 
-4. **Open the review page:** start `python3 src/review.py` in the background. It serves http://127.0.0.1:8765/ on this computer only and opens it in the browser.
+4. **Open the review page:** run `python3 src/review.py --detach`. It serves http://127.0.0.1:8765/ on this computer only, opens it in the browser, and is safe to run when the page is already open. (When the batch was started from the page's "Find today's jobs" button, skip this step and step 5.)
 
 5. **Report to the applicant:**
    - How many jobs were tailored

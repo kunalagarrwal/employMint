@@ -23,6 +23,7 @@ from jobs import ROOT, db_connect, jd_file, now_iso, pay_from_text, sponsorship_
 import outreach  # noqa: E402
 import me  # noqa: E402
 import live  # noqa: E402
+import daily  # noqa: E402
 from apply import GROUPS, group_of  # noqa: E402
 
 RESUMES = (ROOT / "resumes").resolve()
@@ -329,9 +330,20 @@ def page(db):
                         "Heard back? Record it from the three-dot menu on that application." if n_applied else "", today),
         "archive": hero("Archive", 'The archive. <em>Closed, rejected, skipped.</em>', "", today),
     }
-    caught_up = (f'<div class="caught-up">{LEAF}<p>Ask Claude to run today\'s batch for more.</p>'
+    batch = daily.running()
+    queued_today = len(queued)
+    if batch:
+        finder = (f'<div class="finding" role="status"><span class="spin">{LEAF}</span><div><b>Finding today\'s jobs…</b>'
+                  f'<p>Claude is reading new postings and tailoring a resume for each. They appear here as they\'re '
+                  f'ready{f" ({queued_today} still to go)" if queued_today else ""}. You can close this page.</p></div></div>')
+    else:
+        finder = ('<div class="finder"><button class="btn" data-find>Find today\'s jobs</button>'
+                  '<p>Claude refreshes the listings and tailors a resume for each of today\'s best matches, about '
+                  '20 to 40 minutes. You can keep using this page or close it.</p></div>')
+    caught_up = (f'<div class="caught-up">{LEAF}<p>Nothing new right now.</p>'
                  + (f'<p><a href="#apply">Go to Apply ({n_apply})</a></p>' if n_apply else "") + '</div>')
-    tabs = [("review", "Review", n_review, review or caught_up),
+    review_body = review if review else ("" if batch else caught_up)
+    tabs = [("review", "Review", n_review, (finder if batch or not tailored else "") + review_body),
             ("apply", "Apply", n_apply, apply_),
             ("sent", "Sent", n_applied, applied),
             ("archive", "Archive", len(by("closed", "rejected", "skip")), archive)]
@@ -364,6 +376,7 @@ def page(db):
   <nav class="side-nav" aria-label="Sections">{side_nav}</nav>
   <div class="side-foot">
     <p class="tally">{tally}</p>
+    {'<p class="side-finding">Finding today’s jobs…</p>' if batch else '<button class="link" data-find>Find more jobs</button>'}
     <button class="pill theme-toggle" type="button" aria-label="Darkroom (dark mode)"><svg viewBox="0 0 24 24"><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/><g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg><span>Darkroom</span></button>
     <p class="keys"><kbd>1</kbd>–<kbd>4</kbd> sections · <kbd>/</kbd> search<span class="review-keys"><br><kbd>A</kbd> approve · <kbd>S</kbd> skip top card</span></p>
   </div>
@@ -460,6 +473,14 @@ main { width:min(800px, 100% - 96px); margin:0 auto; padding:56px 0 120px; }
 .leaves .leaf:nth-child(2) { animation-delay:.06s; } .leaves .leaf:nth-child(3) { animation-delay:.12s; }
 .leaves .leaf:nth-child(4) { animation-delay:.18s; } .leaves .leaf:nth-child(n+5) { animation-delay:.24s; }
 @keyframes sprout { from { transform:rotate(30deg) scale(0); } to { transform:rotate(30deg) scale(1); } }
+.finder { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:0 0 32px; }
+.finder p { flex:1 1 280px; font-size:14px; color:var(--muted); max-width:34em; }
+.finding { display:flex; gap:16px; align-items:flex-start; padding:18px 20px; margin-bottom:28px; border:1px solid var(--line);
+  border-radius:14px; background:var(--card); }
+.finding b { font-weight:600; }
+.finding p { margin-top:4px; font-size:14px; color:var(--muted); }
+.spin .leaf { width:16px; height:26px; animation:sway 1.6s ease-in-out infinite; transform-origin:50% 100%; }
+.side-finding { font-size:13px; color:var(--mint); }
 .caught-up { display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:8px 0 40px; color:var(--muted); }
 .caught-up .leaf { width:26px; height:42px; animation:sway 4s ease-in-out infinite; transform-origin:50% 100%; }
 @keyframes sway { 0%, 100% { transform:rotate(22deg); } 50% { transform:rotate(38deg); } }
@@ -609,7 +630,7 @@ body.searching .no-results.on { display:block; }
   .card { padding:20px; }
   h3 { font-size:22px; }
 }
-@media (prefers-reduced-motion: reduce) { .panel.show, .leaves .leaf, .caught-up .leaf, .toast { animation:none; } }
+@media (prefers-reduced-motion: reduce) { .spin .leaf, .panel.show, .leaves .leaf, .caught-up .leaf, .toast { animation:none; } }
 """
 
 JS = r"""
@@ -779,6 +800,12 @@ document.addEventListener("click", async ev => {
                                      : await res.text());
     return;
   }
+  if ("find" in b.dataset) {  // Find today's jobs: Claude runs the batch in the background
+    b.disabled = true;
+    const res = await fetch("/batch", { method: "POST", headers: { "X-Employmint": "1" } });
+    if (res.ok) reloadHere(); else { alert(await res.text()); b.disabled = false; }
+    return;
+  }
   if (b.id === "check-live") {
     b.disabled = true; b.textContent = "Checking postings…";
     await fetch("/live", { method: "POST", headers: { "X-Employmint": "1" } });
@@ -844,7 +871,10 @@ class Handler(BaseHTTPRequestHandler):
                     mtime = outreach.OUTREACH.stat().st_mtime_ns
                 except OSError:
                     mtime = 0
-                return self.send(200, f"{mtime}-{LIVE['stamp']}-{int(LIVE['running'])}", "text/plain")
+                batch = daily.running()
+                ready = db.execute("SELECT COUNT(*) FROM jobs WHERE app_status='tailored'").fetchone()[0] if batch else 0
+                return self.send(200, f"{mtime}-{LIVE['stamp']}-{int(LIVE['running'])}-{int(bool(batch))}-{ready}",
+                                 "text/plain")
             if u.path == "/pdf":
                 r = self.job(db, u.query)
                 if not r or not r["resume_dir"]:
@@ -931,7 +961,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if not self.trusted() or self.headers.get("X-Employmint") != "1" or path not in ("/decide", "/queue", "/outreach", "/live"):
+        if not self.trusted() or self.headers.get("X-Employmint") != "1" or path not in ("/decide", "/queue", "/outreach", "/live", "/batch"):
             return self.send(403, "forbidden", "text/plain")
         if path == "/queue":
             return self.start_queue()
@@ -941,6 +971,9 @@ class Handler(BaseHTTPRequestHandler):
                              "application/json" if started else "text/plain")
         if path == "/outreach":
             return self.decide_outreach()
+        if path == "/batch":  # "Find today's jobs": Claude runs today's batch in the background
+            started, message = daily.start()
+            return self.send(200 if started else 409, message, "text/plain")
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
             jid, decision = body["id"], body["decision"]
@@ -1000,13 +1033,51 @@ def start_live_check(max_age_hours=None):
     return True
 
 
+def already_running(port):
+    """True when an employMint review page already answers on this port."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/outreach-version", timeout=1.5) as r:
+            return r.status == 200
+    except OSError:
+        return False
+
+
+def detach(port):
+    """Starts the review page in the background (used by the employMint app) and waits until it answers."""
+    import time
+    log = open(ROOT / "data" / "review-server.log", "a")
+    subprocess.Popen([sys.executable, str(Path(__file__).resolve()), "--port", str(port), "--no-open"], cwd=str(ROOT),
+                     stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+    log.close()
+    for _ in range(40):
+        if already_running(port):
+            return True
+        time.sleep(0.25)
+    return False
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-open", action="store_true")
+    ap.add_argument("--detach", action="store_true", help="run in the background, open the page, and return")
     args = ap.parse_args()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     url = f"http://127.0.0.1:{args.port}/"
+    if already_running(args.port):  # opening it twice just shows the page that's already running
+        print(f"Review page already running: {url}")
+        if not args.no_open:
+            webbrowser.open(url)
+        return
+    if args.detach:
+        (ROOT / "data").mkdir(exist_ok=True)
+        if not detach(args.port):
+            sys.exit(f"The review page didn't start; see {ROOT / 'data' / 'review-server.log'}")
+        print(f"Review page: {url}")
+        if not args.no_open:
+            webbrowser.open(url)
+        return
+    server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     print(f"Review page: {url}  (Ctrl+C to stop)")
     start_live_check(max_age_hours=12)  # approved jobs not checked in the last 12 hours
     if not args.no_open:

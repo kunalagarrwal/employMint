@@ -28,6 +28,11 @@ Then open this folder in your assistant (for Claude Code, run `claude` here) and
    answer (pay, working in person, travel, availability), tick **Remember my answer** once and later forms
    fill them for you to check.
 
+**Every day after that, no typing needed:** open the **employMint** app (the installer adds it; on a Mac find it
+with Spotlight or Launchpad, and drag it to your Dock) and click **Find today's jobs**. Claude finds and tailors the
+day's jobs in the background, and they appear on the page as they're ready. Saying "Run today's batch" to your
+assistant does the same thing.
+
 ## Why it's built this way
 
 Job applications are a messy, high-stakes workflow: unstructured postings, dozens of form layouts, visa
@@ -108,7 +113,9 @@ python3 src/jobs.py run                 # refresh listings, download description
 python3 src/jobs.py batch --n 20        # pick today's jobs to tailor
 python3 src/render.py resumes/<slug>/tailored.json   # verify + render a resume PDF
 python3 src/cover.py resumes/<slug>/cover.json       # verify + render a cover letter
-python3 src/review.py                   # review page at http://127.0.0.1:8765
+python3 src/review.py                   # review page at http://127.0.0.1:8765 (or open the employMint app)
+python3 src/daily.py start              # what "Find today's jobs" does: the batch, run by Claude in the background
+bash tools/make_app.sh                  # (re)make the employMint app, e.g. after moving this folder
 python3 src/apply.py queue [--group quick|workday|manual]  # fill each waiting application; Submit is your yes
 python3 src/live.py check               # check approved postings are still open; closed ones move to Closed
 python3 src/evals.py [--fill]           # quality report

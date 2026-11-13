@@ -72,3 +72,23 @@ def test_row_offers_only_the_next_steps():
     html = R.row(r)
     assert 'data-d="offer"' in html and 'data-d="rejected"' in html
     assert 'data-d="assessment"' not in html and 'data-d="undo"' not in html
+
+
+def test_opening_twice_is_safe_when_nothing_runs():
+    import socket
+    with socket.socket() as s:  # a port nothing is listening on
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    assert R.already_running(port) is False
+
+
+def test_page_offers_find_todays_jobs(tmp_path, monkeypatch):
+    monkeypatch.setattr(J, "DATA", tmp_path)
+    monkeypatch.setattr(J, "DB_PATH", tmp_path / "jobs.sqlite")
+    monkeypatch.setattr(R, "load_outreach", lambda: {})
+    monkeypatch.setattr(R.daily, "running", lambda: None)
+    html = R.page(J.db_connect())
+    assert "data-find" in html and "Find today" in html
+    monkeypatch.setattr(R.daily, "running", lambda: {"pid": 1, "started": "x", "log": "y"})
+    html = R.page(J.db_connect())
+    assert "Finding today" in html and 'class="btn" data-find' not in html

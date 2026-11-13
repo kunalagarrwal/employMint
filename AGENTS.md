@@ -54,7 +54,8 @@ python3 src/jobs.py batch --n 10                     # pick today's jobs (skips 
 python3 src/live.py check                            # which approved jobs are still open; closed ones move to Closed
 python3 src/render.py resumes/<slug>/tailored.json   # verify + render a resume PDF
 python3 src/cover.py resumes/<slug>/cover.json       # verify + render a cover letter
-python3 src/review.py                                # review page at http://127.0.0.1:8765
+python3 src/review.py                                # review page at http://127.0.0.1:8765 (safe to run twice)
+python3 src/daily.py start                           # run today's batch in the background ("Find today's jobs")
 python3 src/apply.py scan <job id>                   # list a form's questions and planned answers
 python3 src/apply.py open <job id>                   # open the filled form for the student
 python3 -m pytest -q tests                           # tests (pip install -r requirements-dev.txt)

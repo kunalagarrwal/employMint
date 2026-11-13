@@ -52,6 +52,9 @@ else
 fi
 "$PY" src/profile_check.py || echo "(The profile check found problems; your AI assistant fixes them during setup.)"
 
+say "Adding the employMint app"
+bash tools/make_app.sh "$PY" || echo "(Couldn't add the app; open the review page with: $PY src/review.py)"
+
 say "Done. Next:"
 if [ "$PY" != python3 ]; then
   echo "  0. Packages are in .venv/: use .venv/bin/python in place of python3 (AGENTS.md tells your assistant)."
@@ -59,6 +62,7 @@ fi
 cat <<'EOF'
   1. Open this folder in your AI assistant (Claude Code: run `claude` here; Codex and others read AGENTS.md).
   2. Say: "Set me up" and give it your resume. It builds profile/ with you.
-  3. Then say: "Run today's batch" to find and tailor internships.
-     It fills forms but never submits: you review and click Submit yourself.
+  3. After that, open the employMint app (Spotlight or Launchpad on a Mac) any day and click
+     "Find today's jobs". Or say "Run today's batch" to your assistant; both do the same.
+     It fills forms but never submits: you read each one and click Submit yourself.
 EOF
